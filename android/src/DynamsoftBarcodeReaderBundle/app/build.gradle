@@ -1,0 +1,45 @@
+plugins {
+    id "com.android.library"
+}
+
+ext {
+    releaseVersion = "10.4.2003"
+}
+
+android {
+    namespace 'com.dynamsoft.dbrbundle'
+    compileSdk 33
+
+    defaultConfig {
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "10.4.2003"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    api "com.dynamsoft:dynamsoftlicense:3.4.40"
+    api "com.dynamsoft:dynamsoftcore:3.4.20"
+    api "com.dynamsoft:dynamsoftcameraenhancer:4.2.20"
+    api "com.dynamsoft:dynamsoftcapturevisionrouter:2.4.21"
+    api "com.dynamsoft:dynamsoftbarcodereader:10.4.20"
+    api "com.dynamsoft:dynamsoftimageprocessing:2.4.20"
+    api "com.dynamsoft:dynamsoftutility:1.4.20"
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+}
