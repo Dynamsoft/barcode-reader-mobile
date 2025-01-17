@@ -20,10 +20,12 @@ class ConfigSerial implements Serializable {
 	private final String templateFilePath;
 	private final String license;
 	private final ArrayList<Float> dsRect;
+	private final boolean isCameraToggleButtonVisible;
 
 	public ConfigSerial(boolean isFlashButtonVisible, boolean isBeepEnabled,
 	                    boolean isScanLaserVisible, boolean isAutoZoomEnabled, boolean isCloseButtonVisible,
-	                    long format, String templateFilePath, String license, ArrayList<Float> dsRect) {
+	                    long format, String templateFilePath, String license, ArrayList<Float> dsRect,
+	                    boolean isCameraToggleButtonVisible) {
 		this.isFlashButtonVisible = isFlashButtonVisible;
 		this.isBeepEnabled = isBeepEnabled;
 		this.isScanLaserVisible = isScanLaserVisible;
@@ -33,6 +35,7 @@ class ConfigSerial implements Serializable {
 		this.templateFilePath = templateFilePath;
 		this.license = license;
 		this.dsRect = dsRect;
+		this.isCameraToggleButtonVisible = isCameraToggleButtonVisible;
 	}
 
 	public boolean isTorchButtonVisible() {
@@ -70,5 +73,9 @@ class ConfigSerial implements Serializable {
 
 	public ArrayList<Float> getScanRegion() {
 		return dsRect;
+	}
+
+	public boolean isCameraToggleButtonVisible() {
+		return isCameraToggleButtonVisible;
 	}
 }

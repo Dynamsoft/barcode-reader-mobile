@@ -15,6 +15,7 @@ public final class BarcodeScannerConfig {
 	private boolean isScanLaserVisible = true;
 	private boolean isAutoZoomEnabled;
 	private boolean isCloseButtonVisible = true;
+	private boolean isCameraToggleButtonVisible;
 	private long format = EnumBarcodeFormat.BF_DEFAULT;
 	private String templateFilePath;
 	private String license;
@@ -90,5 +91,12 @@ public final class BarcodeScannerConfig {
 	}
 	public void setScanRegion(DSRect scanRegion){
 		this.dsRect = scanRegion;
+	}
+	public boolean isCameraToggleButtonVisible() {
+		return isCameraToggleButtonVisible;
+	}
+
+	public void setCameraToggleButtonVisible(boolean cameraToggleButtonVisible) {
+		isCameraToggleButtonVisible = cameraToggleButtonVisible;
 	}
 }

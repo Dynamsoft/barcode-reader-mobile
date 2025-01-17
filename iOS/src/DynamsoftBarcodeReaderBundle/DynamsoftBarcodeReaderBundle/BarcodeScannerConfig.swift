@@ -20,4 +20,5 @@ public class BarcodeScannerConfig: NSObject {
     public var isAutoZoomEnabled: Bool = false
     public var isCloseButtonVisible: Bool = true
     public var barcodeFormats: BarcodeFormat = .default
+    public var isCameraToggleButtonVisible: Bool = false
 }

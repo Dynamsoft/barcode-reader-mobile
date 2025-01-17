@@ -20,9 +20,9 @@ public enum ResultStatus:Int {
 public class BarcodeScanResult: NSObject {
     public let resultStatus:ResultStatus
     public let barcodes: [BarcodeResultItem]?
-    public let errorCode: Int?
+    public let errorCode: Int
     public let errorString: String?
-    init(resultStatus: ResultStatus, barcodes: [BarcodeResultItem]? = nil, errorCode: Int? = nil, errorString: String? = nil) {
+    init(resultStatus: ResultStatus, barcodes: [BarcodeResultItem]? = nil, errorCode: Int = 0, errorString: String? = nil) {
         self.resultStatus = resultStatus
         self.barcodes = barcodes
         self.errorCode = errorCode

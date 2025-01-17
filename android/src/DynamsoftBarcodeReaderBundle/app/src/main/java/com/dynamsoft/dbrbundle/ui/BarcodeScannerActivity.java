@@ -6,10 +6,11 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import com.dynamsoft.core.basic_structures.CompletionListener;
@@ -30,6 +31,7 @@ import com.dynamsoft.dce.CameraView;
 import com.dynamsoft.dce.DrawingItem;
 import com.dynamsoft.dce.DrawingLayer;
 import com.dynamsoft.dce.DrawingStyleManager;
+import com.dynamsoft.dce.EnumCameraPosition;
 import com.dynamsoft.dce.EnumCoordinateBase;
 import com.dynamsoft.dce.EnumEnhancerFeatures;
 import com.dynamsoft.dce.Feedback;
@@ -45,6 +47,7 @@ import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 /**
  * @author: dynamsoft
@@ -61,12 +64,16 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 	private CaptureVisionRouter mRouter;
 	private CameraView mCameraView;
 	private View mTouchView;
-	private boolean isTorchOn = false;
+	private Button btnToggle;
+	private Button btnTorch;
+
 	private ConfigSerial configuration;
 	private final int radius = 40;
 	private HashMap<String, BarcodeResultItem> mapResultItem;
 	private DSRect scanRegion;
 	private String templateName = "";
+	private boolean isTorchOn;
+	private boolean useBackCamera = true;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -86,7 +93,8 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 				}
 			});
 		}
-
+		btnToggle = findViewById(R.id.btn_toggle);
+		btnTorch = findViewById(R.id.btn_torch);
 
 		boolean isCloseButtonVisible = configuration.isCloseButtonVisible();
 		ImageView closeButton = findViewById(R.id.iv_back);
@@ -177,6 +185,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 			public void onSuccess() {
 				initTorchButton();
 				initAutoZoom();
+				initToggleButton();
 			}
 
 			@Override
@@ -234,15 +243,62 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 	}
 
 	private void initTorchButton() {
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-		float density = displayMetrics.density;
-		float screenWidth = displayMetrics.widthPixels/density;
-		float screenHeight = displayMetrics.heightPixels/density;
-		mCameraView.setTorchButtonVisible(configuration.isTorchButtonVisible());
-		if(configuration.isTorchButtonVisible()){
-			mCameraView.setTorchButton(new Point((int) (screenWidth/2 - 22), (int) (screenHeight*0.8)));
+		btnTorch.setVisibility(configuration.isTorchButtonVisible() ? View.VISIBLE : View.GONE);
+		btnTorch.setOnClickListener(v -> {
+			isTorchOn = !isTorchOn;
+			if (isTorchOn) {
+				turnOnTorch();
+			} else {
+				turnOffTorch();
+			}
+		});
+	}
+
+	private void turnOnTorch() {
+		try {
+			mCamera.turnOnTorch();
+			btnTorch.setBackground(ContextCompat.getDrawable(this, R.drawable.icon_flash_on));
+		} catch (CameraEnhancerException e) {
+			e.printStackTrace();
 		}
+	}
+
+	private void turnOffTorch() {
+		try {
+			mCamera.turnOffTorch();
+			btnTorch.setBackground(ContextCompat.getDrawable(this, R.drawable.icon_flash_off));
+		} catch (CameraEnhancerException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void initToggleButton() {
+		btnToggle.setVisibility(configuration.isCameraToggleButtonVisible() ? View.VISIBLE : View.GONE);
+		if (!configuration.isTorchButtonVisible() && configuration.isCameraToggleButtonVisible()) {
+			resetToggleButton(0);
+		}
+		btnToggle.setOnClickListener(v -> {
+			try {
+				useBackCamera = !useBackCamera;
+				mCamera.selectCamera(useBackCamera ? EnumCameraPosition.CP_BACK : EnumCameraPosition.CP_FRONT);
+				if (configuration.isTorchButtonVisible()) {
+					btnTorch.setVisibility(useBackCamera ? View.VISIBLE : View.GONE);
+					resetToggleButton(useBackCamera ? dpToPx(50) : 0);
+					if(!useBackCamera){
+						isTorchOn = false;
+						turnOffTorch();
+					}
+				}
+			} catch (CameraEnhancerException e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void resetToggleButton(int margin) {
+		ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) btnToggle.getLayoutParams();
+		params.setMarginStart(margin);
+		btnToggle.setLayoutParams(params);
 	}
 
 	private void initAutoZoom() {
@@ -256,7 +312,10 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 	}
 
 	private void drawSymbols(DecodedBarcodesResult scanResult) {
-		mCameraView.setTorchButtonVisible(false);
+		runOnUiThread(() -> {
+			btnToggle.setVisibility(View.GONE);
+			btnTorch.setVisibility(View.GONE);
+		});
 		int matchedStyle = DrawingStyleManager.createDrawingStyle(Color.WHITE, 3, Color.GREEN, Color.WHITE);
 		DrawingLayer layer = mCameraView.getDrawingLayer(DrawingLayer.DBR_LAYER_ID);
 		layer.setDefaultStyle(matchedStyle);
@@ -365,6 +424,11 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 		Feedback.beep(this);
 	}
 
+	public int dpToPx(int dp) {
+		float density = getResources().getDisplayMetrics().density;
+		return Math.round(dp * density);
+	}
+
 	public static final class ResultContract extends ActivityResultContract<BarcodeScannerConfig, BarcodeScanResult> {
 
 		@NonNull
@@ -378,7 +442,8 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 					barcodeScannerConfig.isCloseButtonVisible(), barcodeScannerConfig.getBarcodeFormats(),
 					barcodeScannerConfig.getTemplateFilePath(),
 					barcodeScannerConfig.getLicense(),
-					serializeScanRegion(dsRect));
+					serializeScanRegion(dsRect),
+					barcodeScannerConfig.isCameraToggleButtonVisible());
 			intent.putExtra(EXTRA_SCANNER_CONFIG, configSerial);
 			return intent;
 		}
