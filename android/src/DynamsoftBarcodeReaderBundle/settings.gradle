@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "DynamsoftBarcodeReaderBundle"
-include ':app'
+include ':DynamsoftBarcodeReaderBundle'
