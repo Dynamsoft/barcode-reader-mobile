@@ -6,15 +6,16 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import com.dynamsoft.core.basic_structures.CompletionListener;
 import com.dynamsoft.core.basic_structures.DSRect;
-import com.dynamsoft.core.basic_structures.EnumColourChannelUsageType;
+import com.dynamsoft.core.basic_structures.EnumCapturedResultItemType;
 import com.dynamsoft.cvr.CaptureVisionRouter;
 import com.dynamsoft.cvr.CaptureVisionRouterException;
 import com.dynamsoft.cvr.CapturedResultReceiver;
@@ -30,14 +31,18 @@ import com.dynamsoft.dce.CameraView;
 import com.dynamsoft.dce.DrawingItem;
 import com.dynamsoft.dce.DrawingLayer;
 import com.dynamsoft.dce.DrawingStyleManager;
+import com.dynamsoft.dce.EnumCameraPosition;
 import com.dynamsoft.dce.EnumCoordinateBase;
 import com.dynamsoft.dce.EnumEnhancerFeatures;
 import com.dynamsoft.dce.Feedback;
 import com.dynamsoft.dce.Note;
 import com.dynamsoft.dce.utils.PermissionUtil;
 import com.dynamsoft.license.LicenseManager;
+import com.dynamsoft.utility.MultiFrameResultCrossFilter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -45,6 +50,7 @@ import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 /**
  * @author: dynamsoft
@@ -57,16 +63,26 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 	public final static String EXTRA_ERROR_CODE = "extra_error_code";
 	public final static String EXTRA_ERROR_STRING = "extra_error_string";
 	public final static String EXTRA_ITEM_LIST = "extra_item_list";
+	private static final String TAG = "BarcodeScannerActivity";
 	private CameraEnhancer mCamera;
 	private CaptureVisionRouter mRouter;
 	private CameraView mCameraView;
 	private View mTouchView;
-	private boolean isTorchOn = false;
+	private Button btnToggle;
+	private Button btnTorch;
 	private ConfigSerial configuration;
 	private final int radius = 40;
 	private HashMap<String, BarcodeResultItem> mapResultItem;
 	private DSRect scanRegion;
 	private String templateName = "";
+	@EnumScanningMode
+	private int scanMode;
+	private DecodedBarcodesResult cachedResult;
+	private int maxConsecutiveStableFrames;
+	private int cumulativeFrames = 0;
+	private int expectedBarcodesCount;
+	private boolean isTorchOn;
+	private boolean useBackCamera = true;
 
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -86,8 +102,12 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 				}
 			});
 		}
+		btnToggle = findViewById(R.id.btn_toggle);
+		btnTorch = findViewById(R.id.btn_torch);
 
-
+		scanMode = configuration.getScanningMode();
+		maxConsecutiveStableFrames = configuration.getMaxConsecutiveStableFramesToExit();
+		expectedBarcodesCount = configuration.getExpectedBarcodesCount();
 		boolean isCloseButtonVisible = configuration.isCloseButtonVisible();
 		ImageView closeButton = findViewById(R.id.iv_back);
 		closeButton.setVisibility(isCloseButtonVisible ? View.VISIBLE : View.GONE);
@@ -101,7 +121,6 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 		addDrawingItemListener();
 
 		mCamera = new CameraEnhancer(mCameraView, this);
-		mCamera.setColourChannelUsageType(EnumColourChannelUsageType.CCUT_FULL_CHANNEL);
 		boolean isScanLaserVisible = configuration.isScanLaserVisible();
 		mCameraView.setScanLaserVisible(isScanLaserVisible);
 
@@ -112,15 +131,32 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 		mRouter = new CaptureVisionRouter(this);
 
 		try {
-			if (configuration.getTemplateFilePath() != null && !configuration.getTemplateFilePath().isEmpty()) {
+			if (configuration.getTemplateFile() != null && !configuration.getTemplateFile().isEmpty()) {
+				String template = configuration.getTemplateFile();
+				if (template.startsWith("{") || template.startsWith("[")) {
+					mRouter.initSettings(template);
+				} else {
+					mRouter.initSettingsFromFile(template);
+				}
+			} else if (configuration.getTemplateFilePath() != null && !configuration.getTemplateFilePath().isEmpty()) {
 				mRouter.initSettingsFromFile(configuration.getTemplateFilePath());
 			} else {
-				SimplifiedCaptureVisionSettings settings = mRouter.getSimplifiedSettings(EnumPresetTemplate.PT_READ_BARCODES);
-				templateName = EnumPresetTemplate.PT_READ_BARCODES;
+				if (scanMode == EnumScanningMode.SM_SINGLE) {
+					templateName = EnumPresetTemplate.PT_READ_BARCODES;
+				} else {
+					templateName = "ReadMultipleBarcodes";
+					mRouter.initSettingsFromFile("ReadMultipleBarcodes.json");
+				}
+				SimplifiedCaptureVisionSettings settings = mRouter.getSimplifiedSettings(templateName);
 				if (settings.barcodeSettings != null) {
 					settings.barcodeSettings.barcodeFormatIds = configuration.getBarcodeFormats();
-					mRouter.updateSettings(EnumPresetTemplate.PT_READ_BARCODES, settings);
+					mRouter.updateSettings(templateName, settings);
 				}
+			}
+			if (scanMode == EnumScanningMode.SM_MULTIPLE) {
+				MultiFrameResultCrossFilter filter = new MultiFrameResultCrossFilter();
+				filter.enableLatestOverlapping(EnumCapturedResultItemType.CRIT_BARCODE, true);
+				mRouter.addResultFilter(filter);
 			}
 
 		} catch (CaptureVisionRouterException e) {
@@ -148,25 +184,10 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 			// The method returns a DecodedBarcodesResult object that contains an array of BarcodeResultItems.
 			// BarcodeResultItems is the basic unit from which you can get the basic info of the barcode like the barcode text and barcode format.
 			public void onDecodedBarcodesReceived(@NonNull DecodedBarcodesResult result) {
-				if (result.getItems().length > 1) {
-					if (configuration.isBeepEnabled()) {
-						beep();
-					}
-					mRouter.stopCapturing();
-					try {
-						mCamera.setScanRegion(null);
-						mCamera.close();
-					} catch (CameraEnhancerException e) {
-						throw new RuntimeException(e);
-					}
-
-					drawSymbols(result);
-				} else if (result.getItems().length == 1) {
-					if (configuration.isBeepEnabled()) {
-						beep();
-					}
-					resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
-					finish();
+				if (scanMode == EnumScanningMode.SM_SINGLE) {
+					resultSingle(result);
+				} else {
+					resultMultiple(result);
 				}
 			}
 		});
@@ -177,6 +198,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 			public void onSuccess() {
 				initTorchButton();
 				initAutoZoom();
+				initToggleButton();
 			}
 
 			@Override
@@ -201,6 +223,102 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 		resultOK(BarcodeScanResult.EnumResultStatus.RS_CANCELED, null);
 		super.onBackPressed();
 	}
+
+	private void resultSingle(DecodedBarcodesResult result) {
+		if (result.getItems().length > 1) {
+			if (configuration.isBeepEnabled()) {
+				beep();
+			}
+			mRouter.stopCapturing();
+			try {
+				mCamera.setScanRegion(null);
+				mCamera.close();
+			} catch (CameraEnhancerException e) {
+				throw new RuntimeException(e);
+			}
+			runOnUiThread(() -> {
+				mCameraView.setScanLaserVisible(false);
+				btnToggle.setVisibility(View.GONE);
+				btnTorch.setVisibility(View.GONE);
+			});
+
+			drawSymbols(result);
+		} else if (result.getItems().length == 1) {
+			if (configuration.isBeepEnabled()) {
+				beep();
+			}
+			resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
+			finish();
+		}
+	}
+
+	private void resultMultiple(DecodedBarcodesResult result) {
+		if (result.getItems().length >= expectedBarcodesCount) {
+			resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
+			finish();
+			return;
+		}
+		if (!sortResult(result)) {
+			cumulativeFrames = 0;
+			cachedResult = result;
+		} else {
+			cumulativeFrames++;
+			if (cumulativeFrames >= maxConsecutiveStableFrames) {
+				resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
+				finish();
+			}
+		}
+	}
+
+	private boolean sortResult(DecodedBarcodesResult currentResult) {
+		if (cachedResult == null) {
+			return false;
+		}
+		BarcodeResultItem[] cachedItems = cachedResult.getItems();
+		BarcodeResultItem[] currentItems = currentResult.getItems();
+		if (cachedItems.length == 0 || currentItems.length == 0 || cachedItems.length != currentItems.length) {
+			return false;
+		} else {
+			Arrays.sort(cachedItems, (o1, o2) -> {
+				if (o1.getLocation().points[0].x != o2.getLocation().points[0].x) {
+					return o1.getLocation().points[0].x - o2.getLocation().points[0].x;
+				} else {
+					return o1.getLocation().points[0].y - o2.getLocation().points[0].y;
+				}
+			});
+			Arrays.sort(currentItems, (o1, o2) -> {
+				if (o1.getLocation().points[0].x != o2.getLocation().points[0].x) {
+					return o1.getLocation().points[0].x - o2.getLocation().points[0].x;
+				} else {
+					return o1.getLocation().points[0].y - o2.getLocation().points[0].y;
+				}
+			});
+			for (int i = 0; i < cachedItems.length; i++) {
+				BarcodeResultItem cachedItem = cachedItems[i];
+				BarcodeResultItem currentItem = currentItems[i];
+				if (!cachedItem.getText().equals(currentItem.getText()) || cachedItem.getType() != currentItem.getType()) {
+					return false;
+				}
+				int cachedX = 0;
+				int cachedY = 0;
+				int currentX = 0;
+				int currentY = 0;
+				for (int j = 0; j < 4; j++) {
+					cachedX += cachedItems[i].getLocation().points[j].x;
+					cachedY += cachedItems[i].getLocation().points[j].y;
+					currentX += currentItems[i].getLocation().points[j].x;
+					currentY += currentItems[i].getLocation().points[j].y;
+				}
+				int absX = Math.abs(cachedX / 4 - currentX / 4);
+				int absY = Math.abs(cachedY / 4 - currentY / 4);
+				if (absX > 30 || absY > 30) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 
 	private void openCamera() {
 		try {
@@ -234,15 +352,71 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 	}
 
 	private void initTorchButton() {
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-		float density = displayMetrics.density;
-		float screenWidth = displayMetrics.widthPixels/density;
-		float screenHeight = displayMetrics.heightPixels/density;
-		mCameraView.setTorchButtonVisible(configuration.isTorchButtonVisible());
-		if(configuration.isTorchButtonVisible()){
-			mCameraView.setTorchButton(new Point((int) (screenWidth/2 - 22), (int) (screenHeight*0.8)));
+		btnTorch.setVisibility(configuration.isTorchButtonVisible() ? View.VISIBLE : View.GONE);
+		btnTorch.setOnClickListener(v -> {
+			isTorchOn = !isTorchOn;
+			if (isTorchOn) {
+				turnOnTorch();
+			} else {
+				turnOffTorch();
+			}
+		});
+	}
+
+
+	private void turnOnTorch() {
+		try {
+			mCamera.turnOnTorch();
+			btnTorch.setBackground(ContextCompat.getDrawable(this, R.drawable.icon_flash_on));
+		} catch (CameraEnhancerException e) {
+			e.printStackTrace();
 		}
+		btnToggle.setOnClickListener(v -> {
+			try {
+				useBackCamera = !useBackCamera;
+				mCamera.selectCamera(useBackCamera ? EnumCameraPosition.CP_BACK : EnumCameraPosition.CP_FRONT);
+			} catch (CameraEnhancerException e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void turnOffTorch() {
+		try {
+			mCamera.turnOffTorch();
+			btnTorch.setBackground(ContextCompat.getDrawable(this, R.drawable.icon_flash_off));
+		} catch (CameraEnhancerException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void initToggleButton() {
+		btnToggle.setVisibility(configuration.isCameraToggleButtonVisible() ? View.VISIBLE : View.GONE);
+		if (!configuration.isTorchButtonVisible() && configuration.isCameraToggleButtonVisible()) {
+			resetToggleButton(0);
+		}
+		btnToggle.setOnClickListener(v -> {
+			try {
+				useBackCamera = !useBackCamera;
+				mCamera.selectCamera(useBackCamera ? EnumCameraPosition.CP_BACK : EnumCameraPosition.CP_FRONT);
+				if (configuration.isTorchButtonVisible()) {
+					btnTorch.setVisibility(useBackCamera ? View.VISIBLE : View.GONE);
+					resetToggleButton(useBackCamera ? dpToPx(50) : 0);
+					if (!useBackCamera) {
+						isTorchOn = false;
+						turnOffTorch();
+					}
+				}
+			} catch (CameraEnhancerException e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void resetToggleButton(int margin) {
+		ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) btnToggle.getLayoutParams();
+		params.setMarginStart(margin);
+		btnToggle.setLayoutParams(params);
 	}
 
 	private void initAutoZoom() {
@@ -256,7 +430,10 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 	}
 
 	private void drawSymbols(DecodedBarcodesResult scanResult) {
-		mCameraView.setTorchButtonVisible(false);
+		runOnUiThread(() -> {
+			btnToggle.setVisibility(View.GONE);
+			btnTorch.setVisibility(View.GONE);
+		});
 		int matchedStyle = DrawingStyleManager.createDrawingStyle(Color.WHITE, 3, Color.GREEN, Color.WHITE);
 		DrawingLayer layer = mCameraView.getDrawingLayer(DrawingLayer.DBR_LAYER_ID);
 		layer.setDefaultStyle(matchedStyle);
@@ -365,6 +542,11 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 		Feedback.beep(this);
 	}
 
+	public int dpToPx(int dp) {
+		float density = getResources().getDisplayMetrics().density;
+		return Math.round(dp * density);
+	}
+
 	public static final class ResultContract extends ActivityResultContract<BarcodeScannerConfig, BarcodeScanResult> {
 
 		@NonNull
@@ -378,7 +560,12 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 					barcodeScannerConfig.isCloseButtonVisible(), barcodeScannerConfig.getBarcodeFormats(),
 					barcodeScannerConfig.getTemplateFilePath(),
 					barcodeScannerConfig.getLicense(),
-					serializeScanRegion(dsRect));
+					serializeScanRegion(dsRect),
+					barcodeScannerConfig.getScanningMode(),
+					barcodeScannerConfig.getMaxConsecutiveStableFramesToExit(),
+					barcodeScannerConfig.getExpectedBarcodesCount(),
+					barcodeScannerConfig.isCameraToggleButtonVisible(),
+					barcodeScannerConfig.getTemplateFile());
 			intent.putExtra(EXTRA_SCANNER_CONFIG, configSerial);
 			return intent;
 		}

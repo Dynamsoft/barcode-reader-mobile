@@ -18,12 +18,19 @@ class ConfigSerial implements Serializable {
 	private final boolean isCloseButtonVisible;
 	private final long format;
 	private final String templateFilePath;
+	private final String templateFile;
 	private final String license;
 	private final ArrayList<Float> dsRect;
+	private final int scanningMode;
+	private final int maxConsecutiveStableFramesToExit;
+	private final int expectedBarcodesCount;
+	private final boolean isCameraToggleButtonVisible;
 
 	public ConfigSerial(boolean isFlashButtonVisible, boolean isBeepEnabled,
 	                    boolean isScanLaserVisible, boolean isAutoZoomEnabled, boolean isCloseButtonVisible,
-	                    long format, String templateFilePath, String license, ArrayList<Float> dsRect) {
+	                    long format, String templateFilePath, String license, ArrayList<Float> dsRect,
+	                    @EnumScanningMode int scanningMode, int maxConsecutiveStableFramesToExit, int expectedBarcodesCount,
+	                    boolean isCameraToggleButtonVisible, String templateFile) {
 		this.isFlashButtonVisible = isFlashButtonVisible;
 		this.isBeepEnabled = isBeepEnabled;
 		this.isScanLaserVisible = isScanLaserVisible;
@@ -33,6 +40,11 @@ class ConfigSerial implements Serializable {
 		this.templateFilePath = templateFilePath;
 		this.license = license;
 		this.dsRect = dsRect;
+		this.scanningMode = scanningMode;
+		this.maxConsecutiveStableFramesToExit = maxConsecutiveStableFramesToExit;
+		this.expectedBarcodesCount = expectedBarcodesCount;
+		this.isCameraToggleButtonVisible = isCameraToggleButtonVisible;
+		this.templateFile = templateFile;
 	}
 
 	public boolean isTorchButtonVisible() {
@@ -70,5 +82,26 @@ class ConfigSerial implements Serializable {
 
 	public ArrayList<Float> getScanRegion() {
 		return dsRect;
+	}
+
+	@EnumScanningMode
+	public int getScanningMode() {
+		return scanningMode;
+	}
+
+	public int getMaxConsecutiveStableFramesToExit() {
+		return maxConsecutiveStableFramesToExit;
+	}
+
+	public int getExpectedBarcodesCount() {
+		return expectedBarcodesCount;
+	}
+
+	public boolean isCameraToggleButtonVisible() {
+		return isCameraToggleButtonVisible;
+	}
+
+	public String getTemplateFile() {
+		return templateFile;
 	}
 }

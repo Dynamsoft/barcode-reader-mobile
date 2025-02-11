@@ -34,6 +34,8 @@
 		680A03D22CEB0CDA0057FA6A /* DynamsoftImageProcessing in Frameworks */ = {isa = PBXBuildFile; productRef = 680A03D12CEB0CDA0057FA6A /* DynamsoftImageProcessing */; };
 		680A03D42CEB0CDA0057FA6A /* DynamsoftLicense in Frameworks */ = {isa = PBXBuildFile; productRef = 680A03D32CEB0CDA0057FA6A /* DynamsoftLicense */; };
 		680A03D82CEB0D320057FA6A /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 680A03D72CEB0D320057FA6A /* Media.xcassets */; };
+		68E7D6C42D26862B00B0CDF8 /* DynamsoftUtility in Frameworks */ = {isa = PBXBuildFile; productRef = 68E7D6C32D26862B00B0CDF8 /* DynamsoftUtility */; };
+		68E7D6C62D269B0300B0CDF8 /* ReadMultipleBarcodes.json in Resources */ = {isa = PBXBuildFile; fileRef = 68E7D6C52D269B0300B0CDF8 /* ReadMultipleBarcodes.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +45,7 @@
 		680A03C32CEB0CB80057FA6A /* BarcodeScannerConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerConfig.swift; sourceTree = "<group>"; };
 		680A03C42CEB0CB80057FA6A /* BarcodeScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerViewController.swift; sourceTree = "<group>"; };
 		680A03D72CEB0D320057FA6A /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
+		68E7D6C52D269B0300B0CDF8 /* ReadMultipleBarcodes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ReadMultipleBarcodes.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,6 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				68E7D6C42D26862B00B0CDF8 /* DynamsoftUtility in Frameworks */,
 				680A03CA2CEB0CDA0057FA6A /* DynamsoftBarcodeReader in Frameworks */,
 				680A03CC2CEB0CDA0057FA6A /* DynamsoftCameraEnhancer in Frameworks */,
 				680A03CE2CEB0CDA0057FA6A /* DynamsoftCaptureVisionRouter in Frameworks */,
@@ -66,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				1DC845D72CEB04AE00998CCD /* DynamsoftBarcodeReaderBundle */,
+				68E7D6C22D26862B00B0CDF8 /* Frameworks */,
 				1DC845D62CEB04AE00998CCD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -81,6 +86,7 @@
 		1DC845D72CEB04AE00998CCD /* DynamsoftBarcodeReaderBundle */ = {
 			isa = PBXGroup;
 			children = (
+				68E7D6C52D269B0300B0CDF8 /* ReadMultipleBarcodes.json */,
 				1DC845D82CEB04AE00998CCD /* DynamsoftBarcodeReaderBundle.h */,
 				680A03D72CEB0D320057FA6A /* Media.xcassets */,
 				680A03C22CEB0CB80057FA6A /* BarcodeScanResult.swift */,
@@ -88,6 +94,13 @@
 				680A03C42CEB0CB80057FA6A /* BarcodeScannerViewController.swift */,
 			);
 			path = DynamsoftBarcodeReaderBundle;
+			sourceTree = "<group>";
+		};
+		68E7D6C22D26862B00B0CDF8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -167,6 +180,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				68E7D6C62D269B0300B0CDF8 /* ReadMultipleBarcodes.json in Resources */,
 				680A03D82CEB0D320057FA6A /* Media.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -353,7 +367,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 10.4.2003;
+				MARKETING_VERSION = 10.4.3001;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dynamsoft.DynamsoftFramework;
@@ -388,7 +402,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 10.4.2003;
+				MARKETING_VERSION = 10.4.3001;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dynamsoft.DynamsoftFramework;
@@ -494,6 +508,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 680A03C82CEB0CDA0057FA6A /* XCRemoteSwiftPackageReference "barcode-reader-spm" */;
 			productName = DynamsoftLicense;
+		};
+		68E7D6C32D26862B00B0CDF8 /* DynamsoftUtility */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 680A03C82CEB0CDA0057FA6A /* XCRemoteSwiftPackageReference "barcode-reader-spm" */;
+			productName = DynamsoftUtility;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

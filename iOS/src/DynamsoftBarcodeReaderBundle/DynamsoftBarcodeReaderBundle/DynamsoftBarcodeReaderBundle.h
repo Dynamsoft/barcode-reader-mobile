@@ -16,3 +16,4 @@ FOUNDATION_EXPORT const unsigned char DynamsoftBarcodeReaderBundleVersionString[
 #import <DynamsoftCameraEnhancer/DynamsoftCameraEnhancer.h>
 #import <DynamsoftCaptureVisionRouter/DynamsoftCaptureVisionRouter.h>
 #import <DynamsoftBarcodeReader/DynamsoftBarcodeReader.h>
+#import <DynamsoftUtility/DynamsoftUtility.h>
