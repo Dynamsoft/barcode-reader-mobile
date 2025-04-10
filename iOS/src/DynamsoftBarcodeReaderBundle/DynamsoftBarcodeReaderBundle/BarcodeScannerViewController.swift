@@ -81,11 +81,6 @@ public class BarcodeScannerViewController: UIViewController {
                 self.onScannedResult?(.init(resultStatus: .exception, errorCode: error.code, errorString: error.localizedDescription))
             }
         }
-        if config.scanningMode == .multiple {
-            let filter = MultiFrameResultCrossFilter()
-            filter.enableLatestOverlapping(.barcode, isEnabled: true)
-            cvr.addResultFilter(filter)
-        }
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
@@ -147,6 +142,12 @@ extension BarcodeScannerViewController {
         case .multiple:
             layer?.visible = true
         }
+        let filter = MultiFrameResultCrossFilter()
+        filter.enableResultCrossVerification(.barcode, isEnabled: true)
+        if config.scanningMode == .multiple {
+            filter.enableLatestOverlapping(.barcode, isEnabled: true)
+        }
+        cvr.addResultFilter(filter)
     }
     
     private func setupUI() {

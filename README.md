@@ -14,15 +14,15 @@ The **Dynamsoft BarcodeScanner** is a ready-to-use component built on the [Dynam
 1. **Download Source Code**  
    - Navigate to the `android/src` folder in this repository and download the source code. Modify the code according to your project requirements.  
 
-2. **Import `DynamsoftBarcodeReaderBundle` as a Module**
+2. **Import `DynamsoftBarcodeReaderBundle/dynamsoftbarcodereaderbundle` as a Module**
    - In Android Studio, go to File > New > Import Module.
-   - Select the `DynamsoftBarcodeReaderBundle` directory and follow the prompts to add it to your project.
+   - Select the `DynamsoftBarcodeReaderBundle/dynamsoftbarcodereaderbundle` directory and follow the prompts to add it to your project.
 
 3. **Add the module dependency to your app's `build.gradle` file:**  
 
      ```groovy
      dependencies {
-         implementation project(':DynamsoftBarcodeReaderBundle')
+         implementation project(':dynamsoftbarcodereaderbundle')
      }
      ```
 

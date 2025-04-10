@@ -129,7 +129,8 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 
 	private void configCVR() {
 		mRouter = new CaptureVisionRouter(this);
-
+		MultiFrameResultCrossFilter filter = new MultiFrameResultCrossFilter();
+		filter.enableResultCrossVerification(EnumCapturedResultItemType.CRIT_BARCODE, true);
 		try {
 			if (configuration.getTemplateFile() != null && !configuration.getTemplateFile().isEmpty()) {
 				String template = configuration.getTemplateFile();
@@ -154,11 +155,9 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 				}
 			}
 			if (scanMode == EnumScanningMode.SM_MULTIPLE) {
-				MultiFrameResultCrossFilter filter = new MultiFrameResultCrossFilter();
 				filter.enableLatestOverlapping(EnumCapturedResultItemType.CRIT_BARCODE, true);
-				mRouter.addResultFilter(filter);
 			}
-
+			mRouter.addResultFilter(filter);
 		} catch (CaptureVisionRouterException e) {
 			e.printStackTrace();
 			resultError(e.getErrorCode(), e.getMessage());
@@ -371,14 +370,6 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 		} catch (CameraEnhancerException e) {
 			e.printStackTrace();
 		}
-		btnToggle.setOnClickListener(v -> {
-			try {
-				useBackCamera = !useBackCamera;
-				mCamera.selectCamera(useBackCamera ? EnumCameraPosition.CP_BACK : EnumCameraPosition.CP_FRONT);
-			} catch (CameraEnhancerException e) {
-				e.printStackTrace();
-			}
-		});
 	}
 
 	private void turnOffTorch() {

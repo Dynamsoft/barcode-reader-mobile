@@ -6,10 +6,10 @@
   <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
   <!-- that they should prefer consuming it instead. -->
   <!-- do_not_remove: published-with-gradle-metadata -->
-  <modelVersion>10.4.3001</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
   <groupId>com.dynamsoft</groupId>
   <artifactId>dynamsoftbarcodereaderbundle</artifactId>
-  <version>10.4.3001</version>
+  <version>10.4.3002</version>
   <packaging>aar</packaging>
   <dependencies>
     <!-- Dynamsoft License -->

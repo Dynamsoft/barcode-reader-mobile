@@ -3,7 +3,7 @@ plugins {
 }
 
 ext {
-    releaseVersion = "10.4.3001"
+    releaseVersion = "10.4.3002"
 }
 
 def localPublishFileExists = file('local_publish.gradle').exists()
@@ -11,6 +11,7 @@ def localPublishFileExists = file('local_publish.gradle').exists()
 if (localPublishFileExists) {
     apply from: 'local_publish.gradle'
 }
+
 
 android {
     namespace 'com.dynamsoft.dbrbundle'
@@ -20,7 +21,8 @@ android {
         minSdk 21
         targetSdk 33
         versionCode 1
-        versionName "10.4.2003"
+        versionName "${project.ext.releaseVersion}"
+
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,5 +49,4 @@ dependencies {
     api "com.dynamsoft:dynamsoftutility:1.4.30"
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
 }
