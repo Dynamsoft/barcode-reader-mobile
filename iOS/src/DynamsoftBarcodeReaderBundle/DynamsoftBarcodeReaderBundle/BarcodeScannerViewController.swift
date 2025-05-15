@@ -5,12 +5,7 @@
 //  Copyright © Dynamsoft Corporation.  All rights reserved.
 //
 
-import DynamsoftCore
-import DynamsoftCameraEnhancer
-import DynamsoftCaptureVisionRouter
-import DynamsoftBarcodeReader
-import DynamsoftLicense
-import DynamsoftUtility
+import DynamsoftCaptureVisionBundle
 
 @objc(DSBarcodeScannerViewController)
 public class BarcodeScannerViewController: UIViewController {
@@ -54,27 +49,19 @@ public class BarcodeScannerViewController: UIViewController {
                     return
                 }
             }
-        } else if let path = config.templateFilePath {
-            do {
-                try cvr.initSettingsFromFile(path)
-                name = ""
-            } catch let error as NSError {
-                self.onScannedResult?(.init(resultStatus: .exception, errorCode: error.code, errorString: error.localizedDescription))
-                return
-            }
         } else {
+            if let jsonPath = Bundle(for: Self.self).path(forResource: "dbr-mobile", ofType: ".json") {
+                try? cvr.initSettingsFromFile(jsonPath)
+            }
             switch config.scanningMode {
             case .single:
                 name = PresetTemplate.readBarcodes.rawValue
             case .multiple:
-                if let jsonPath = Bundle(for: Self.self).path(forResource: "ReadMultipleBarcodes", ofType: ".json") {
-                    try! cvr.initSettingsFromFile(jsonPath)
-                    name = "ReadMultipleBarcodes"
-                }
+                name = "ReadMultipleBarcodes"
             }
             let settings = try! cvr.getSimplifiedSettings(name)
             settings.barcodeSettings?.barcodeFormatIds = config.barcodeFormats
-            try! cvr.updateSettings(name, settings: settings)
+            try? cvr.updateSettings(name, settings: settings)
         }
         cvr.startCapturing(name) { isSuccess, error in
             if let error = error as? NSError, !isSuccess {
@@ -129,7 +116,7 @@ extension BarcodeScannerViewController {
         cameraView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.insertSubview(cameraView, at: 0)
         dce.cameraView = cameraView
-        try! cvr.setInput(dce)
+        try? cvr.setInput(dce)
         cvr.addResultReceiver(self)
         if config.isAutoZoomEnabled {
             dce.enableEnhancedFeatures(.autoZoom)

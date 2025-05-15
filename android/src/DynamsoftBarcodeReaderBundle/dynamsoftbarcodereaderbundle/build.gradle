@@ -3,7 +3,9 @@ plugins {
 }
 
 ext {
-    releaseVersion = "10.4.3002"
+    releaseVersion = "11.0.3000"
+    productName = "BarcodeReaderBundle"
+    publishVersion = releaseVersion
 }
 
 def localPublishFileExists = file('local_publish.gradle').exists()
@@ -12,16 +14,16 @@ if (localPublishFileExists) {
     apply from: 'local_publish.gradle'
 }
 
-
 android {
     namespace 'com.dynamsoft.dbrbundle'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         minSdk 21
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "${project.ext.releaseVersion}"
+        archivesBaseName = "${project.ext.productName}-${project.ext.releaseVersion}"
 
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -40,13 +42,7 @@ android {
 }
 
 dependencies {
-    api "com.dynamsoft:dynamsoftlicense:3.4.40"
-    api "com.dynamsoft:dynamsoftcore:3.4.30"
-    api "com.dynamsoft:dynamsoftcameraenhancer:4.2.22"
-    api "com.dynamsoft:dynamsoftcapturevisionrouter:2.4.30"
-    api "com.dynamsoft:dynamsoftbarcodereader:10.4.30"
-    api "com.dynamsoft:dynamsoftimageprocessing:2.4.31"
-    api "com.dynamsoft:dynamsoftutility:1.4.30"
+    api "com.dynamsoft:capturevisionbundle:3.0.3000"
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    api 'androidx.appcompat:appcompat:1.6.1'
 }

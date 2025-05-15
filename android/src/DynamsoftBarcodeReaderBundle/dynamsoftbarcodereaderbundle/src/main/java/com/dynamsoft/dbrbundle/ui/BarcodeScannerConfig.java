@@ -2,14 +2,14 @@ package com.dynamsoft.dbrbundle.ui;
 
 import com.dynamsoft.core.basic_structures.DSRect;
 import com.dynamsoft.dbr.EnumBarcodeFormat;
+import java.io.Serializable;
 
 /**
  * @author: dynamsoft
  * Time: 2024/10/8
  * Description:
  */
-public final class BarcodeScannerConfig {
-	public static final String TAG = "BarcodeScannerConfiguration";
+public final class BarcodeScannerConfig implements Serializable {
 	private boolean isFlashButtonVisible = true;
 	private boolean isBeepEnabled;
 	private boolean isScanLaserVisible = true;
@@ -17,11 +17,15 @@ public final class BarcodeScannerConfig {
 	private boolean isCloseButtonVisible = true;
 	private boolean isCameraToggleButtonVisible;
 	private long format = EnumBarcodeFormat.BF_DEFAULT;
-	@Deprecated
-	private String templateFilePath;
 	private String templateFile;
 	private String license;
-	private DSRect dsRect;
+
+
+	/*****For set/getScanRegion*****/
+	private float[] dsRectValues = null; //left, top, right, bottom
+	private boolean dsRectMeasureInPercent;
+	/****************************/
+
 	private int scanningMode = 0;
 	private int maxConsecutiveStableFramesToExit = 10;
 	private int expectedBarcodesCount = 999;
@@ -75,22 +79,12 @@ public final class BarcodeScannerConfig {
 		this.format = format;
 	}
 
-	@Deprecated
-	public String getTemplateFilePath() {
-		return templateFilePath;
-	}
-
-	@Deprecated
-	public void setTemplateFilePath(String templateFilePath) {
-		this.templateFilePath = templateFilePath;
-	}
-
 	public String getTemplateFile(){
 		return templateFile;
 	}
 
-	public void setTemplateFile(String templateFilePath){
-		this.templateFile = templateFilePath;
+	public void setTemplateFile(String templateFile){
+		this.templateFile = templateFile;
 	}
 
 	public String getLicense() {
@@ -102,10 +96,17 @@ public final class BarcodeScannerConfig {
 	}
 
 	public DSRect getScanRegion(){
-		return dsRect;
+		if(dsRectValues == null) {
+			return null;
+		}
+		return new DSRect(dsRectValues[0], dsRectValues[1], dsRectValues[2], dsRectValues[3], dsRectMeasureInPercent);
 	}
 	public void setScanRegion(DSRect scanRegion){
-		this.dsRect = scanRegion;
+		if(scanRegion == null) {
+			return;
+		}
+		dsRectValues = new float[]{scanRegion.left, scanRegion.top, scanRegion.right, scanRegion.bottom};
+		dsRectMeasureInPercent = scanRegion.measuredInPercentage;
 	}
 
 	@EnumScanningMode

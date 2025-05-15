@@ -38,7 +38,7 @@ The **Dynamsoft BarcodeScanner** is a ready-to-use component built on the [Dynam
    - Drag the `DynamsoftBarcodeReaderBundle.xcodeproj` into your Xcode project.
 
 3. **Verify Dependencies**  
-   - Verify that the necessary libraries and frameworks (e.g., `DynamsoftCore`, `DynamsoftBarcodeReader`, etc.) are linked in your Xcode project's settings.  
+   - Verify that the necessary libraries and frameworks (e.g., `DynamsoftCaptureVisionBundle`, etc.) are linked in your Xcode project's settings.  
 
 ## Support  
 

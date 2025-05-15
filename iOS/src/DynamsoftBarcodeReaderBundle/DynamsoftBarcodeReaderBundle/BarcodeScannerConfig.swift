@@ -6,14 +6,12 @@
 //
 
 import Foundation
-import DynamsoftBarcodeReader
+import DynamsoftCaptureVisionBundle
 
 @objcMembers
 @objc(DSBarcodeScannerConfig)
 public class BarcodeScannerConfig: NSObject {
     public var license: String!
-    @available(*, deprecated, message: "Use `templateFile` instead")
-    public var templateFilePath: String?
     public var templateFile: String?
     public var isTorchButtonVisible: Bool = true
     public var scanRegion: Rect?

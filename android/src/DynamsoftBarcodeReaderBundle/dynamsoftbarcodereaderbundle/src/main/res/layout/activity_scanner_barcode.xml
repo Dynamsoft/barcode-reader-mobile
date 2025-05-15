@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 
 	<com.dynamsoft.dce.CameraView
 		android:id="@+id/camera_view"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent" />
-
-	<View
-		android:id="@+id/touch_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
 
@@ -20,25 +15,32 @@
 		android:layout_height="25dp"
 		android:layout_marginStart="16dp"
 		android:layout_marginTop="16dp"
-		android:src="@drawable/icon_close" />
+        android:contentDescription="@null"
+        android:src="@drawable/icon_close" />
 
 	<LinearLayout
 		android:id="@+id/action_view"
-		android:layout_width="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_centerHorizontal="true"
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
 		android:gravity="center"
 		android:layout_marginBottom="90dp">
-		<android.widget.Button
+
+		<androidx.appcompat.widget.AppCompatButton
 			android:id="@+id/btn_torch"
+			android:layout_marginHorizontal="25dp"
+			android:visibility="gone"
+			tools:visibility="visible"
 			android:layout_width="40dp"
 			android:layout_height="40dp"
 			android:background="@drawable/icon_flash_off" />
 
-		<android.widget.Button
+		<androidx.appcompat.widget.AppCompatButton
 			android:id="@+id/btn_toggle"
-			android:layout_marginStart="50dp"
+			android:layout_marginHorizontal="25dp"
+			android:visibility="gone"
+			tools:visibility="visible"
 			android:layout_width="40dp"
 			android:layout_height="40dp"
 			android:background="@drawable/toggle_lens" />
