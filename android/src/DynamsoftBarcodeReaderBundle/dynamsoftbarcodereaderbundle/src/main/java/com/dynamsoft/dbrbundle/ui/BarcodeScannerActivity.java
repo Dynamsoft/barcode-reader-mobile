@@ -228,19 +228,14 @@ public class BarcodeScannerActivity extends AppCompatActivity {
                 beep();
             }
             mRouter.stopCapturing();
-            try {
-                mCamera.setScanRegion(null);
-                mCamera.close();
-            } catch (CameraEnhancerException e) {
-                throw new RuntimeException(e);
-            }
+            drawSymbols(result);
+            mCamera.close();
             runOnUiThread(() -> {
                 mCameraView.setScanLaserVisible(false);
+                mCameraView.setScanRegionMaskVisible(false);
                 btnToggle.setVisibility(View.GONE);
                 btnTorch.setVisibility(View.GONE);
             });
-
-            drawSymbols(result);
         } else if (result.getItems().length == 1) {
             if (configuration.isBeepEnabled()) {
                 beep();
