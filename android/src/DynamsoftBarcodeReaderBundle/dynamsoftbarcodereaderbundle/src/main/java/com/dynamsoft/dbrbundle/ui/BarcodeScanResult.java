@@ -6,6 +6,8 @@ import android.graphics.Point;
 import com.dynamsoft.core.basic_structures.Quadrilateral;
 import com.dynamsoft.dbr.BarcodeResultItem;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,11 +17,6 @@ import static com.dynamsoft.dbrbundle.ui.BarcodeScannerActivity.EXTRA_ERROR_CODE
 import static com.dynamsoft.dbrbundle.ui.BarcodeScannerActivity.EXTRA_ERROR_STRING;
 import static com.dynamsoft.dbrbundle.ui.BarcodeScannerActivity.EXTRA_STATUS_CODE;
 
-/**
- * @author: dynamsoft
- * Time: 2024/10/8
- * Description:
- */
 public final class BarcodeScanResult {
 	public static final String TAG = "ScannerResult";
 	private BarcodeResultItemProxy[] barcodeResults;
@@ -28,6 +25,7 @@ public final class BarcodeScanResult {
 	private int errorCode;
 	private String errorString;
 
+	@Retention(RetentionPolicy.SOURCE)
 	@IntDef(value = {EnumResultStatus.RS_FINISHED, EnumResultStatus.RS_CANCELED, EnumResultStatus.RS_EXCEPTION})
 	public @interface EnumResultStatus {
 		int RS_FINISHED = 0;

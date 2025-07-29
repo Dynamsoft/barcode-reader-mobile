@@ -3,7 +3,7 @@ plugins {
 }
 
 ext {
-    releaseVersion = "11.0.3100"
+    releaseVersion = "11.0.5000"
     productName = "BarcodeReaderBundle"
     publishVersion = releaseVersion
 }
@@ -36,13 +36,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
+//    publishing {
+//        singleVariant("release") {
+////            withSourcesJar()
+//        }
+//    }
 }
 
 dependencies {
-    api "com.dynamsoft:capturevisionbundle:3.0.3100"
+    api "com.dynamsoft:capturevisionbundle:3.0.5000"
 
     api 'androidx.appcompat:appcompat:1.6.1'
 }

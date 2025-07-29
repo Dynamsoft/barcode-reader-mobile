@@ -135,6 +135,9 @@ extension BarcodeScannerViewController {
             filter.enableLatestOverlapping(.barcode, isEnabled: true)
         }
         cvr.addResultFilter(filter)
+        if let zoomFactor = config.zoomFactor {
+            dce.setZoomFactor(zoomFactor)
+        }
     }
     
     private func setupUI() {
@@ -189,14 +192,14 @@ extension BarcodeScannerViewController {
         let position = dce.getCameraPosition()
         switch position {
         case .back, .backDualWideAuto, .backUltraWide:
-            try? dce.selectCamera(with: .front)
+            dce.selectCamera(with: .front, completion: nil)
             torchButton.isHidden = true
             torchButton.isSelected = false
         case .front:
-            try? dce.selectCamera(with: .back)
+            dce.selectCamera(with: .backDualWideAuto, completion: nil)
             torchButton.isHidden = !config.isTorchButtonVisible
         @unknown default:
-            try? dce.selectCamera(with: .back)
+            dce.selectCamera(with: .backDualWideAuto, completion: nil)
             torchButton.isHidden = !config.isTorchButtonVisible
         }
     }
@@ -217,6 +220,9 @@ extension BarcodeScannerViewController: CapturedResultReceiver {
         stop()
         if config.isBeepEnabled {
             Feedback.beep()
+        }
+        if config.isVibrateEnabled {
+            Feedback.vibrate()
         }
         if items.count == 1 {
             if let item = items.first {
@@ -252,6 +258,9 @@ extension BarcodeScannerViewController: CapturedResultReceiver {
             if config.isBeepEnabled {
                 Feedback.beep()
             }
+            if config.isVibrateEnabled {
+                Feedback.vibrate()
+            }
             onScannedResult?(.init(resultStatus: .finished, barcodes: result.items))
         } else {
             guard let resultitems = referenceItems else {
@@ -265,6 +274,9 @@ extension BarcodeScannerViewController: CapturedResultReceiver {
                     stop()
                     if config.isBeepEnabled {
                         Feedback.beep()
+                    }
+                    if config.isVibrateEnabled {
+                        Feedback.vibrate()
                     }
                     onScannedResult?(.init(resultStatus: .finished, barcodes: result.items))
                 }
@@ -315,11 +327,19 @@ extension BarcodeScannerViewController: CameraStateListener {
     public func onCameraStateChanged(_ currentState: CameraState) {
         if currentState == .opened {
             if let rect = config.scanRegion {
-                try? dce.setScanRegion(rect)
+                DispatchQueue.main.async {
+                    try? self.dce.setScanRegion(rect)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    let region = self.cameraView.getVisibleRegionOfVideo()
+                    try? self.dce.setScanRegion(region)
+                    self.cameraView.scanRegionMaskVisible = false
+                }
             }
         } else if currentState == .closed {
-            try? dce.setScanRegion(nil)
             DispatchQueue.main.async {
+                try? self.dce.setScanRegion(nil)
                 self.cameraView.scanLaserVisible = false
             }
         }

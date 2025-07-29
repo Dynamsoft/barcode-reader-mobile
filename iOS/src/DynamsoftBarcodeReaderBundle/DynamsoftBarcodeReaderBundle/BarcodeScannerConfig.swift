@@ -24,6 +24,8 @@ public class BarcodeScannerConfig: NSObject {
     public var maxConsecutiveStableFramesToExit: Int = 10
     public var expectedBarcodesCount: Int = 999
     public var isCameraToggleButtonVisible: Bool = false
+    public var zoomFactor: CGFloat?
+    public var isVibrateEnabled: Bool = false
 }
 
 @objc(DSScanningMode)

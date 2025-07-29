@@ -2,6 +2,8 @@ package com.dynamsoft.dbrbundle.ui;
 
 import com.dynamsoft.core.basic_structures.DSRect;
 import com.dynamsoft.dbr.EnumBarcodeFormat;
+import com.dynamsoft.dce.EnumCameraPosition;
+
 import java.io.Serializable;
 
 /**
@@ -10,12 +12,18 @@ import java.io.Serializable;
  * Description:
  */
 public final class BarcodeScannerConfig implements Serializable {
-	private boolean isFlashButtonVisible = true;
+	private boolean isTorchButtonVisible = true;
+
+	boolean isTorchOn = false;
+
 	private boolean isBeepEnabled;
+	private boolean isVibrationEnabled;
 	private boolean isScanLaserVisible = true;
 	private boolean isAutoZoomEnabled;
 	private boolean isCloseButtonVisible = true;
 	private boolean isCameraToggleButtonVisible;
+
+	int cameraPosition = EnumCameraPosition.CP_BACK;
 	private long format = EnumBarcodeFormat.BF_DEFAULT;
 	private String templateFile;
 	private String license;
@@ -30,12 +38,14 @@ public final class BarcodeScannerConfig implements Serializable {
 	private int maxConsecutiveStableFramesToExit = 10;
 	private int expectedBarcodesCount = 999;
 
+	private float zoomFactor = 1f;
+
 	public boolean isTorchButtonVisible() {
-		return isFlashButtonVisible;
+		return isTorchButtonVisible;
 	}
 
 	public void setTorchButtonVisible(boolean flashButtonVisible) {
-		isFlashButtonVisible = flashButtonVisible;
+		isTorchButtonVisible = flashButtonVisible;
 	}
 
 	public boolean isBeepEnabled() {
@@ -44,6 +54,14 @@ public final class BarcodeScannerConfig implements Serializable {
 
 	public void setBeepEnabled(boolean beepEnabled) {
 		isBeepEnabled = beepEnabled;
+	}
+
+	public boolean isVibrateEnabled() {
+		return isVibrationEnabled;
+	}
+
+	public void setVibrateEnabled(boolean vibrationEnabled) {
+		isVibrationEnabled = vibrationEnabled;
 	}
 
 	public boolean isScanLaserVisible() {
@@ -140,5 +158,13 @@ public final class BarcodeScannerConfig implements Serializable {
 
 	public void setCameraToggleButtonVisible(boolean cameraToggleButtonVisible) {
 		isCameraToggleButtonVisible = cameraToggleButtonVisible;
+	}
+
+	public float getZoomFactor() {
+		return zoomFactor;
+	}
+
+	public void setZoomFactor(float zoomFactor) {
+		this.zoomFactor = zoomFactor;
 	}
 }
