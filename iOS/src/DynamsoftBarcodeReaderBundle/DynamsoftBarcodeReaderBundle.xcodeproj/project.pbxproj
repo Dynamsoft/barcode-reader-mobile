@@ -30,6 +30,7 @@
 		680A03D82CEB0D320057FA6A /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 680A03D72CEB0D320057FA6A /* Media.xcassets */; };
 		682724CE2DD5D190006B541B /* DynamsoftCaptureVisionBundle in Frameworks */ = {isa = PBXBuildFile; productRef = 682724CD2DD5D190006B541B /* DynamsoftCaptureVisionBundle */; };
 		683734052DBB71F300EB72FF /* Models in Resources */ = {isa = PBXBuildFile; fileRef = 683734042DBB71F300EB72FF /* Models */; };
+		68A0373E2E4DB07B00277601 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 68A0373D2E4DB07B00277601 /* PrivacyInfo.xcprivacy */; };
 		68E7D6C62D269B0300B0CDF8 /* dbr-mobile.json in Resources */ = {isa = PBXBuildFile; fileRef = 68E7D6C52D269B0300B0CDF8 /* dbr-mobile.json */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 		680A03C42CEB0CB80057FA6A /* BarcodeScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerViewController.swift; sourceTree = "<group>"; };
 		680A03D72CEB0D320057FA6A /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		683734042DBB71F300EB72FF /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Models; path = DynamsoftBarcodeReaderBundle/Models; sourceTree = "<group>"; };
+		68A0373D2E4DB07B00277601 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		68E7D6C52D269B0300B0CDF8 /* dbr-mobile.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "dbr-mobile.json"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -77,6 +79,7 @@
 		1DC845D72CEB04AE00998CCD /* DynamsoftBarcodeReaderBundle */ = {
 			isa = PBXGroup;
 			children = (
+				68A0373D2E4DB07B00277601 /* PrivacyInfo.xcprivacy */,
 				68E7D6C52D269B0300B0CDF8 /* dbr-mobile.json */,
 				1DC845D82CEB04AE00998CCD /* DynamsoftBarcodeReaderBundle.h */,
 				680A03D72CEB0D320057FA6A /* Media.xcassets */,
@@ -173,6 +176,7 @@
 			files = (
 				68E7D6C62D269B0300B0CDF8 /* dbr-mobile.json in Resources */,
 				683734052DBB71F300EB72FF /* Models in Resources */,
+				68A0373E2E4DB07B00277601 /* PrivacyInfo.xcprivacy in Resources */,
 				680A03D82CEB0D320057FA6A /* Media.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -359,7 +363,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 11.0.5000;
+				MARKETING_VERSION = 11.0.5200;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dynamsoft.DynamsoftBarcodeReaderBundle;
@@ -394,7 +398,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 11.0.5000;
+				MARKETING_VERSION = 11.0.5200;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dynamsoft.DynamsoftBarcodeReaderBundle;
