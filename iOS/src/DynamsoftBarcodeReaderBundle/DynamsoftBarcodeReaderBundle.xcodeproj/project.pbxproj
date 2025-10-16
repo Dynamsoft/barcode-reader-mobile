@@ -29,7 +29,7 @@
 		680A03C72CEB0CB80057FA6A /* BarcodeScannerConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680A03C32CEB0CB80057FA6A /* BarcodeScannerConfig.swift */; };
 		680A03D82CEB0D320057FA6A /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 680A03D72CEB0D320057FA6A /* Media.xcassets */; };
 		682724CE2DD5D190006B541B /* DynamsoftCaptureVisionBundle in Frameworks */ = {isa = PBXBuildFile; productRef = 682724CD2DD5D190006B541B /* DynamsoftCaptureVisionBundle */; };
-		683734052DBB71F300EB72FF /* Models in Resources */ = {isa = PBXBuildFile; fileRef = 683734042DBB71F300EB72FF /* Models */; };
+		6859ADB62E7AB90900D35402 /* Models in Resources */ = {isa = PBXBuildFile; fileRef = 6859ADB52E7AB90900D35402 /* Models */; };
 		68A0373E2E4DB07B00277601 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 68A0373D2E4DB07B00277601 /* PrivacyInfo.xcprivacy */; };
 		68E7D6C62D269B0300B0CDF8 /* dbr-mobile.json in Resources */ = {isa = PBXBuildFile; fileRef = 68E7D6C52D269B0300B0CDF8 /* dbr-mobile.json */; };
 /* End PBXBuildFile section */
@@ -41,7 +41,7 @@
 		680A03C32CEB0CB80057FA6A /* BarcodeScannerConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerConfig.swift; sourceTree = "<group>"; };
 		680A03C42CEB0CB80057FA6A /* BarcodeScannerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerViewController.swift; sourceTree = "<group>"; };
 		680A03D72CEB0D320057FA6A /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
-		683734042DBB71F300EB72FF /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Models; path = DynamsoftBarcodeReaderBundle/Models; sourceTree = "<group>"; };
+		6859ADB52E7AB90900D35402 /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Models; sourceTree = "<group>"; };
 		68A0373D2E4DB07B00277601 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		68E7D6C52D269B0300B0CDF8 /* dbr-mobile.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "dbr-mobile.json"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -61,7 +61,7 @@
 		1DC845CB2CEB04AE00998CCD = {
 			isa = PBXGroup;
 			children = (
-				683734042DBB71F300EB72FF /* Models */,
+				6859ADB52E7AB90900D35402 /* Models */,
 				1DC845D72CEB04AE00998CCD /* DynamsoftBarcodeReaderBundle */,
 				68E7D6C22D26862B00B0CDF8 /* Frameworks */,
 				1DC845D62CEB04AE00998CCD /* Products */,
@@ -175,9 +175,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				68E7D6C62D269B0300B0CDF8 /* dbr-mobile.json in Resources */,
-				683734052DBB71F300EB72FF /* Models in Resources */,
 				68A0373E2E4DB07B00277601 /* PrivacyInfo.xcprivacy in Resources */,
 				680A03D82CEB0D320057FA6A /* Media.xcassets in Resources */,
+				6859ADB62E7AB90900D35402 /* Models in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -199,7 +199,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# xcframework\nset -e\n# Sets\nreadonly target_name=${PROJECT_NAME}\nreadonly framework_name=${target_name}\nbuild_dir=\"build\"\nxcarchive_iOS=${build_dir}/${framework_name}_iOS.xcarchive\nxcarchive_iOSSimulator=${build_dir}/${framework_name}_iOSSimulator.xcarchive\n\ndSYM_iOS=${xcarchive_iOS}/dSYMs/${framework_name}.framework.dSYM\ndSYM_iOSSimulator=${xcarchive_iOSSimulator}/dSYMs/${framework_name}.framework.dSYM\n\n# Clean oldest\nfunction build_clean {\n    printf \"====build_clean====\"\n    if [ -d ${build_dir} ]\n    then\n        rm -rf ${build_dir}\n    fi\n}\n\n# Build frameworks\nfunction build_frameworks {\n    printf \"====build_frameworks====\"\n    xcodebuild archive -scheme ${target_name} -destination \"generic/platform=iOS\" -archivePath ${xcarchive_iOS} SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES\n    xcodebuild archive -scheme ${target_name} -destination \"generic/platform=iOS Simulator\" -archivePath ${xcarchive_iOSSimulator} SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES\n}\n\n# Build xcframework\nfunction build_xcframework {\n    printf \"====build_xcframework====\"\n    xcodebuild -create-xcframework -archive ${xcarchive_iOS} -framework \"${framework_name}.framework\" -archive ${xcarchive_iOSSimulator} -framework \"${framework_name}.framework\" -output \"${build_dir}/${framework_name}.xcframework\"\n}\n\n# do\nbuild_clean\nbuild_frameworks\nbuild_xcframework\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# xcframework\nset -e\n# Sets\nreadonly target_name=${PROJECT_NAME}\nreadonly framework_name=${target_name}\nbuild_dir=\"build\"\nxcarchive_iOS=${build_dir}/${framework_name}_iOS.xcarchive\nxcarchive_iOSSimulator=${build_dir}/${framework_name}_iOSSimulator.xcarchive\n\ndSYM_iOS=${xcarchive_iOS}/dSYMs/${framework_name}.framework.dSYM\ndSYM_iOSSimulator=${xcarchive_iOSSimulator}/dSYMs/${framework_name}.framework.dSYM\n\n# Check Models directory\nfunction check_models {\n    printf \"====check_models====\\n\"\n    models_dir=\"$(dirname \"${PROJECT_FILE_PATH}\")/Models\"\n\n    if [ ! -d \"$models_dir\" ]; then\n        echo \"❌ Error: Models directory not found at $models_dir\"\n        exit 1\n    fi\n\n    echo \"📂 Checking files in $models_dir ...\"\n    ls -al \"$models_dir\"\n\n    # Find files other than .gitkeep and .DS_Store\n    files=$(find \"$models_dir\" -type f ! -name \".gitkeep\" ! -name \".DS_Store\")\n\n    if [ -z \"$files\" ]; then\n        echo \"❌ Error: Models directory is empty (only .gitkeep/.DS_Store found). Please add model files.\"\n        exit 1\n    fi\n\n    echo \"✅ Models directory check passed.\"\n}\n\n# Clean oldest\nfunction build_clean {\n    printf \"====build_clean====\"\n    if [ -d ${build_dir} ]\n    then\n        rm -rf ${build_dir}\n    fi\n}\n\n# Build frameworks\nfunction build_frameworks {\n    printf \"====build_frameworks====\"\n    xcodebuild archive -scheme ${target_name} -destination \"generic/platform=iOS\" -archivePath ${xcarchive_iOS} SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES\n    xcodebuild archive -scheme ${target_name} -destination \"generic/platform=iOS Simulator\" -archivePath ${xcarchive_iOSSimulator} SKIP_INSTALL=NO BUILD_LIBRARY_FOR_DISTRIBUTION=YES\n}\n\n# Build xcframework\nfunction build_xcframework {\n    printf \"====build_xcframework====\"\n    xcodebuild -create-xcframework -archive ${xcarchive_iOS} -framework \"${framework_name}.framework\" -archive ${xcarchive_iOSSimulator} -framework \"${framework_name}.framework\" -output \"${build_dir}/${framework_name}.xcframework\"\n}\n\n# do\ncheck_models\nbuild_clean\nbuild_frameworks\nbuild_xcframework\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -363,7 +363,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 11.0.5200;
+				MARKETING_VERSION = 11.2.1000;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dynamsoft.DynamsoftBarcodeReaderBundle;
@@ -398,12 +398,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 11.0.5200;
+				MARKETING_VERSION = 11.2.1000;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dynamsoft.DynamsoftBarcodeReaderBundle;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				STRIP_STYLE = "non-global";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_VERSION = 5.0;
@@ -469,7 +470,7 @@
 			repositoryURL = "https://github.com/Dynamsoft/capture-vision-spm";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 3.0.5000;
+				minimumVersion = 3.2.1000;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

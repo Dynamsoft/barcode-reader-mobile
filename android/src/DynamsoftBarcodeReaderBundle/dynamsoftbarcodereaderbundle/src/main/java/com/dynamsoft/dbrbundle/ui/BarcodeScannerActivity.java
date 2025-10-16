@@ -11,16 +11,13 @@ import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -37,6 +34,7 @@ import com.dynamsoft.cvr.SimplifiedCaptureVisionSettings;
 import com.dynamsoft.dbr.BarcodeResultItem;
 import com.dynamsoft.dbr.DecodedBarcodesResult;
 import com.dynamsoft.dbrbundle.R;
+import com.dynamsoft.dbrbundle.ui.utils.ViewUtil;
 import com.dynamsoft.dce.ArcDrawingItem;
 import com.dynamsoft.dce.CameraEnhancer;
 import com.dynamsoft.dce.CameraEnhancerException;
@@ -45,6 +43,7 @@ import com.dynamsoft.dce.DrawingItem;
 import com.dynamsoft.dce.DrawingLayer;
 import com.dynamsoft.dce.DrawingStyleManager;
 import com.dynamsoft.dce.EnumCameraPosition;
+import com.dynamsoft.dce.EnumCameraState;
 import com.dynamsoft.dce.EnumCoordinateBase;
 import com.dynamsoft.dce.EnumEnhancerFeatures;
 import com.dynamsoft.dce.Feedback;
@@ -70,11 +69,8 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
     private CameraEnhancer mCamera;
     private CaptureVisionRouter mRouter;
     private CameraView mCameraView;
-    private Button btnToggle;
-    private Button btnTorch;
     private BarcodeScannerConfig configuration;
-    private final int radius = 40;
-    private final HashMap<String, BarcodeResultItem> mapResultItem = new HashMap<>();
+    private final HashMap<String, BarcodeResultItem> mapResultItem = new HashMap<>(); // key: itemIndex, value: item; For returning item after clicking drawing item
     private String templateName = "";
     private DecodedBarcodesResult cachedResult;
     private int cumulativeFrames = 0;
@@ -125,9 +121,6 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
             finish();
         });
 
-        initTorchButton();
-        initToggleButton();
-
         initCamera();
         initCVR();
 
@@ -174,11 +167,11 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
         mCamera.setZoomFactor(configuration.getZoomFactor());
         mCamera.setZoomFactorChangeListener(factor -> configuration.setZoomFactor(factor));
 
-        if (configuration.isTorchOn) {
-            turnOnTorch();
-        } else {
-            turnOffTorch();
-        }
+        mCamera.setCameraStateListener(state -> {
+            if (state == EnumCameraState.OPENED) {
+                ViewUtil.configCameraViewButton(mCamera, configuration);
+            }
+        });
     }
 
     private void initCVR() {
@@ -295,22 +288,17 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
 
     private void resultSingle(DecodedBarcodesResult result) {
         if (result.getItems().length > 0) {
-            if(configuration.isVibrateEnabled()) {
-                Feedback.vibrate();
-            }
-            if(configuration.isBeepEnabled()) {
-                Feedback.beep();
-            }
+            makeFeedback(configuration);
         }
         if (result.getItems().length > 1) {
             mRouter.stopCapturing();
-            drawSymbols(result);
+            drawSymbols(mCameraView, result);
             mCamera.close();
             runOnUiThread(() -> {
                 mCameraView.setScanLaserVisible(false);
                 mCameraView.setScanRegionMaskVisible(false);
-                btnToggle.setVisibility(View.GONE);
-                btnTorch.setVisibility(View.GONE);
+                mCameraView.setTorchButtonVisible(false);
+                mCameraView.setCameraToggleButtonVisible(false);
             });
         } else if (result.getItems().length == 1) {
             resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
@@ -320,132 +308,27 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
 
     private void resultMultiple(DecodedBarcodesResult result) {
         if (result.getItems().length >= configuration.getExpectedBarcodesCount()) {
+            makeFeedback(configuration);
             resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
             finish();
             return;
         }
-        if (!sortResult(result)) {
+        if (!sortResult(cachedResult, result)) {
             cumulativeFrames = 0;
             cachedResult = result;
         } else {
             cumulativeFrames++;
             if (cumulativeFrames >= configuration.getMaxConsecutiveStableFramesToExit()) {
+                makeFeedback(configuration);
                 resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
                 finish();
             }
         }
     }
 
-    private boolean sortResult(DecodedBarcodesResult currentResult) {
-        if (cachedResult == null) {
-            return false;
-        }
-        BarcodeResultItem[] cachedItems = cachedResult.getItems();
-        BarcodeResultItem[] currentItems = currentResult.getItems();
-        if (cachedItems.length == 0 || currentItems.length == 0 || cachedItems.length != currentItems.length) {
-            return false;
-        } else {
-            Arrays.sort(cachedItems, (o1, o2) -> {
-                if (o1.getLocation().points[0].x != o2.getLocation().points[0].x) {
-                    return o1.getLocation().points[0].x - o2.getLocation().points[0].x;
-                } else {
-                    return o1.getLocation().points[0].y - o2.getLocation().points[0].y;
-                }
-            });
-            Arrays.sort(currentItems, (o1, o2) -> {
-                if (o1.getLocation().points[0].x != o2.getLocation().points[0].x) {
-                    return o1.getLocation().points[0].x - o2.getLocation().points[0].x;
-                } else {
-                    return o1.getLocation().points[0].y - o2.getLocation().points[0].y;
-                }
-            });
-            for (int i = 0; i < cachedItems.length; i++) {
-                BarcodeResultItem cachedItem = cachedItems[i];
-                BarcodeResultItem currentItem = currentItems[i];
-                if (!cachedItem.getText().equals(currentItem.getText()) || cachedItem.getType() != currentItem.getType()) {
-                    return false;
-                }
-                int cachedX = 0;
-                int cachedY = 0;
-                int currentX = 0;
-                int currentY = 0;
-                for (int j = 0; j < 4; j++) {
-                    cachedX += cachedItems[i].getLocation().points[j].x;
-                    cachedY += cachedItems[i].getLocation().points[j].y;
-                    currentX += currentItems[i].getLocation().points[j].x;
-                    currentY += currentItems[i].getLocation().points[j].y;
-                }
-                int absX = Math.abs(cachedX / 4 - currentX / 4);
-                int absY = Math.abs(cachedY / 4 - currentY / 4);
-                if (absX > 30 || absY > 30) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-
-    private void initTorchButton() {
-        btnTorch = findViewById(R.id.btn_torch);
-        btnTorch.setVisibility(configuration.isTorchButtonVisible() && configuration.cameraPosition == EnumCameraPosition.CP_BACK ? View.VISIBLE : View.GONE);
-        btnTorch.setOnClickListener(v -> {
-            if (!configuration.isTorchOn) {
-                turnOnTorch();
-                configuration.isTorchOn = true;
-            } else {
-                turnOffTorch();
-                configuration.isTorchOn = false;
-            }
-        });
-    }
-
-
-    private void turnOnTorch() {
-        mCamera.turnOnTorch();
-        btnTorch.setBackground(ContextCompat.getDrawable(this, R.drawable.icon_flash_on));
-    }
-
-    private void turnOffTorch() {
-        mCamera.turnOffTorch();
-        btnTorch.setBackground(ContextCompat.getDrawable(this, R.drawable.icon_flash_off));
-    }
-
-    private void initToggleButton() {
-        btnToggle = findViewById(R.id.btn_toggle);
-        btnToggle.setVisibility(configuration.isCameraToggleButtonVisible() ? View.VISIBLE : View.GONE);
-        if (!configuration.isTorchButtonVisible() && configuration.isCameraToggleButtonVisible()) {
-            resetToggleButton(0);
-        }
-        btnToggle.setOnClickListener(v -> {
-            configuration.cameraPosition = (configuration.cameraPosition + 1) % 2;
-            mCamera.selectCamera(configuration.cameraPosition);
-            if (configuration.isTorchButtonVisible()) {
-                boolean useBackCam = configuration.cameraPosition == EnumCameraPosition.CP_BACK;
-                btnTorch.setVisibility(useBackCam ? View.VISIBLE : View.GONE);
-                resetToggleButton(useBackCam ? dpToPx(50) : 0);
-                if (!useBackCam) {
-                    configuration.isTorchOn = false;
-                    turnOffTorch();
-                }
-            }
-        });
-    }
-
-    private void resetToggleButton(int margin) {
-        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) btnToggle.getLayoutParams();
-        params.setMarginStart(margin);
-        btnToggle.setLayoutParams(params);
-    }
-
-
-    private void drawSymbols(DecodedBarcodesResult scanResult) {
-        runOnUiThread(() -> {
-            btnToggle.setVisibility(View.GONE);
-            btnTorch.setVisibility(View.GONE);
-        });
+    private void drawSymbols(CameraView cameraView, DecodedBarcodesResult scanResult) {
         int matchedStyle = DrawingStyleManager.createDrawingStyle(Color.WHITE, 3, Color.GREEN, Color.WHITE);
-        DrawingLayer layer = mCameraView.getDrawingLayer(DrawingLayer.DBR_LAYER_ID);
+        DrawingLayer layer = cameraView.getDrawingLayer(DrawingLayer.DBR_LAYER_ID);
         layer.setDefaultStyle(matchedStyle);
         ArrayList<DrawingItem> drawingItemArrayList = new ArrayList<>();
         mapResultItem.clear();
@@ -455,7 +338,7 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
             int arcCenterX = (item.getLocation().points[0].x + item.getLocation().points[2].x) / 2;
             int arcCenterY = (item.getLocation().points[0].y + item.getLocation().points[2].y) / 2;
             Point arcCenter = new Point(arcCenterX, arcCenterY);
-            ArcDrawingItem drawingItem = new ArcDrawingItem(arcCenter, radius, EnumCoordinateBase.CB_IMAGE);
+            ArcDrawingItem drawingItem = new ArcDrawingItem(arcCenter, 40, EnumCoordinateBase.CB_IMAGE);
             drawingItem.addNote(new Note("index", i + ""), true);
             mapResultItem.put(i + "", item);
             drawingItemArrayList.add(drawingItem);
@@ -512,9 +395,62 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
         setResult(RESULT_OK, intent);
     }
 
-    public int dpToPx(int dp) {
-        float density = getResources().getDisplayMetrics().density;
-        return Math.round(dp * density);
+    private static boolean sortResult(DecodedBarcodesResult cachedResult, DecodedBarcodesResult currentResult) {
+        if (cachedResult == null) {
+            return false;
+        }
+        BarcodeResultItem[] cachedItems = cachedResult.getItems();
+        BarcodeResultItem[] currentItems = currentResult.getItems();
+        if (cachedItems.length == 0 || currentItems.length == 0 || cachedItems.length != currentItems.length) {
+            return false;
+        } else {
+            Arrays.sort(cachedItems, (o1, o2) -> {
+                if (o1.getLocation().points[0].x != o2.getLocation().points[0].x) {
+                    return o1.getLocation().points[0].x - o2.getLocation().points[0].x;
+                } else {
+                    return o1.getLocation().points[0].y - o2.getLocation().points[0].y;
+                }
+            });
+            Arrays.sort(currentItems, (o1, o2) -> {
+                if (o1.getLocation().points[0].x != o2.getLocation().points[0].x) {
+                    return o1.getLocation().points[0].x - o2.getLocation().points[0].x;
+                } else {
+                    return o1.getLocation().points[0].y - o2.getLocation().points[0].y;
+                }
+            });
+            for (int i = 0; i < cachedItems.length; i++) {
+                BarcodeResultItem cachedItem = cachedItems[i];
+                BarcodeResultItem currentItem = currentItems[i];
+                if (!cachedItem.getText().equals(currentItem.getText()) || cachedItem.getType() != currentItem.getType()) {
+                    return false;
+                }
+                int cachedX = 0;
+                int cachedY = 0;
+                int currentX = 0;
+                int currentY = 0;
+                for (int j = 0; j < 4; j++) {
+                    cachedX += cachedItems[i].getLocation().points[j].x;
+                    cachedY += cachedItems[i].getLocation().points[j].y;
+                    currentX += currentItems[i].getLocation().points[j].x;
+                    currentY += currentItems[i].getLocation().points[j].y;
+                }
+                int absX = Math.abs(cachedX / 4 - currentX / 4);
+                int absY = Math.abs(cachedY / 4 - currentY / 4);
+                if (absX > 30 || absY > 30) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static void makeFeedback(BarcodeScannerConfig config) {
+        if (config.isVibrateEnabled()) {
+            Feedback.vibrate();
+        }
+        if (config.isBeepEnabled()) {
+            Feedback.beep();
+        }
     }
 
     public static final class ResultContract extends ActivityResultContract<BarcodeScannerConfig, BarcodeScanResult> {

@@ -26,10 +26,29 @@ public class BarcodeScannerViewController: UIViewController {
         setupDCV()
         setupUI()
     }
+    
+    public override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        let bottom = view.safeAreaInsets.bottom
+        let x = view.center.x
+        let height = view.bounds.height
+        let constant = 25.0
+        let iconWidth = 36.0
+        if cameraView.torchButtonVisible && cameraView.cameraToggleButtonVisible {
+            cameraView.setTorchButton(frame: CGRect(x: x - iconWidth - constant/2, y: height - bottom - iconWidth - constant, width: iconWidth, height: iconWidth), torchOnImage: nil, torchOffImage: nil)
+            cameraView.setCameraToggleButtonWithFrame(CGRect(x: x + constant/2, y: height - bottom - iconWidth - constant, width: iconWidth, height: iconWidth), cameraToggle: nil)
+        } else if cameraView.torchButtonVisible {
+            cameraView.setTorchButton(frame: CGRect(x: x - iconWidth/2, y: height - bottom - iconWidth - constant, width: iconWidth, height: iconWidth), torchOnImage: nil, torchOffImage: nil)
+        } else if cameraView.cameraToggleButtonVisible {
+            cameraView.setCameraToggleButtonWithFrame(CGRect(x: x - iconWidth/2, y: height - bottom - iconWidth - constant, width: iconWidth, height: iconWidth), cameraToggle: nil)
+        }
+    }
 
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         dce.open()
+        cameraView.torchButtonVisible = config.isTorchButtonVisible
+        cameraView.cameraToggleButtonVisible = config.isCameraToggleButtonVisible
         var name = PresetTemplate.readBarcodes.rawValue
         if let path = config.templateFile {
             if path.hasPrefix("{") || path.hasPrefix("[") {
@@ -73,6 +92,7 @@ public class BarcodeScannerViewController: UIViewController {
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         stop()
+        self.cameraView.clearUserDefinedDrawingLayers()
     }
     
     public override func viewDidAppear(_ animated: Bool) {
@@ -86,26 +106,6 @@ public class BarcodeScannerViewController: UIViewController {
         let closeImage = UIImage(named: "close", in: bundle, compatibleWith: nil)
         button.setImage(closeImage?.withRenderingMode(.alwaysOriginal), for: .normal)
         button.addTarget(self, action: #selector(onCloseButtonTouchUp), for: .touchUpInside)
-        return button
-    }()
-    
-    lazy var torchButton: UIButton = {
-        let bundle = Bundle(for: type(of: self))
-        let button = UIButton()
-        let torchOffImage = UIImage(named: "torchOff", in: bundle, compatibleWith: nil)
-        let torchOnImage = UIImage(named: "torchOn", in: bundle, compatibleWith: nil)
-        button.setImage(torchOffImage?.withRenderingMode(.alwaysOriginal), for: .normal)
-        button.setImage(torchOnImage?.withRenderingMode(.alwaysOriginal), for: .selected)
-        button.addTarget(self, action: #selector(onTorchButtonTouchUp), for: .touchUpInside)
-        return button
-    }()
-    
-    lazy var cameraButton: UIButton = {
-        let bundle = Bundle(for: type(of: self))
-        let button = UIButton()
-        let switchCameraImage = UIImage(named: "switchCamera", in: bundle, compatibleWith: nil)
-        button.setImage(switchCameraImage?.withRenderingMode(.alwaysOriginal), for: .normal)
-        button.addTarget(self, action: #selector(onCameraButtonTouchUp), for: .touchUpInside)
         return button
     }()
 }
@@ -145,25 +145,11 @@ extension BarcodeScannerViewController {
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(closeButton)
         
-        torchButton.isHidden = !config.isTorchButtonVisible
-        torchButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        cameraButton.isHidden = !config.isCameraToggleButtonVisible
-        cameraButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        let stackView = UIStackView(arrangedSubviews: [torchButton, cameraButton])
-        stackView.axis = .horizontal
-        stackView.spacing = 16
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stackView)
-        
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
             closeButton.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 20),
             closeButton.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 20),
             
-            stackView.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
-            stackView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -50),
         ])
     }
     
@@ -171,37 +157,14 @@ extension BarcodeScannerViewController {
         cvr.stopCapturing()
         dce.close()
         dce.clearBuffer()
+        DispatchQueue.main.async {
+            self.cameraView.cameraToggleButtonVisible = false
+        }
     }
     
     @objc func onCloseButtonTouchUp() {
         stop()
         onScannedResult?(.init(resultStatus: .canceled))
-    }
-    
-    @objc func onTorchButtonTouchUp(_ sender: Any) {
-        guard let button = sender as? UIButton else { return }
-        button.isSelected.toggle()
-        if button.isSelected {
-            dce.turnOnTorch()
-        } else {
-            dce.turnOffTorch()
-        }
-    }
-    
-    @objc func onCameraButtonTouchUp() {
-        let position = dce.getCameraPosition()
-        switch position {
-        case .back, .backDualWideAuto, .backUltraWide:
-            dce.selectCamera(with: .front, completion: nil)
-            torchButton.isHidden = true
-            torchButton.isSelected = false
-        case .front:
-            dce.selectCamera(with: .backDualWideAuto, completion: nil)
-            torchButton.isHidden = !config.isTorchButtonVisible
-        @unknown default:
-            dce.selectCamera(with: .backDualWideAuto, completion: nil)
-            torchButton.isHidden = !config.isTorchButtonVisible
-        }
     }
 }
 
@@ -316,6 +279,7 @@ extension BarcodeScannerViewController: CapturedResultReceiver {
         for tuple in tupleArray {
             let distance = hypot(tapLocation.x - tuple.0.x, tapLocation.y - tuple.0.y)
             if distance <= radius {
+                gesture.view?.removeGestureRecognizer(gesture)
                 onScannedResult?(tuple.1)
                 return
             }

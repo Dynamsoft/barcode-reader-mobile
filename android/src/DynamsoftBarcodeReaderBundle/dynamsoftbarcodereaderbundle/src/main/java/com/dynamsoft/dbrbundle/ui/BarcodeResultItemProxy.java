@@ -1,5 +1,6 @@
 package com.dynamsoft.dbrbundle.ui;
 
+import com.dynamsoft.core.basic_structures.EnumCapturedResultItemType;
 import com.dynamsoft.core.basic_structures.Quadrilateral;
 import com.dynamsoft.dbr.BarcodeResultItem;
 
@@ -39,6 +40,11 @@ public class BarcodeResultItemProxy extends BarcodeResultItem {
 		this.dpm = dpm;
 		this.taskName = taskName;
 		this.targetROIDefName = targetROIDefName;
+	}
+
+	@Override
+	public int getType() {
+		return EnumCapturedResultItemType.CRIT_BARCODE;
 	}
 
 	public long getFormat() {
