@@ -27,4 +27,9 @@ iOSInjectionProject/
 project.xcworkspace
 *.xcframework
 *.xcworkspacedata
-android/src/DynamsoftBarcodeReaderBundle/app/local_publish.gradle
+
+## Android specific
+android/HelloWorld/.idea/
+android/.idea/
+android/HelloWorld/OOB-UI-Barcode/libs
+android/HelloWorld/QuickStartBarcodeScanner/libs
