@@ -1,0 +1,53 @@
+plugins {
+    id "com.android.library"
+}
+
+ext {
+    releaseVersion = "11.2.3000"
+    productName = "BarcodeReaderBundle"
+    publishVersion = releaseVersion
+}
+
+def localPublishFileExists = file('local_publish.gradle').exists()
+
+if (localPublishFileExists) {
+    apply from: 'local_publish.gradle'
+}
+
+android {
+    namespace 'com.dynamsoft.dbrbundle'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "${project.ext.releaseVersion}"
+        archivesBaseName = "${project.ext.productName}-${project.ext.releaseVersion}"
+
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+//    publishing {
+//        singleVariant("release") {
+////            withSourcesJar()
+//        }
+//    }
+}
+
+dependencies {
+    api "com.dynamsoft:capturevisionbundle:3.2.3000"
+
+    api 'androidx.appcompat:appcompat:1.6.1'
+}
