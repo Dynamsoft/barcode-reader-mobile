@@ -72,9 +72,10 @@ public class BarcodeResultItemProxy extends BarcodeResultItem implements Seriali
         targetROIDefName = item.getTargetROIDefName();
 
         ECISegment[] segments = item.getECISegments();
-        eciSegmentsJsons = new String[segments.length];
-        for (int i = 0; i < segments.length; i++) {
-            eciSegmentsJsons[i] = jsonParser.toJson(eciSegments[i]);
+        int segmentsLength = segments == null ? 0 : segments.length;
+        eciSegmentsJsons = new String[segmentsLength];
+        for (int i = 0; i < segmentsLength; i++) {
+            eciSegmentsJsons[i] = jsonParser.toJson(segments[i]);
         }
 
         BarcodeDetails details = item.getDetails();
