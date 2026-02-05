@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -42,7 +43,6 @@ import com.dynamsoft.dce.CameraView;
 import com.dynamsoft.dce.DrawingItem;
 import com.dynamsoft.dce.DrawingLayer;
 import com.dynamsoft.dce.DrawingStyleManager;
-import com.dynamsoft.dce.EnumCameraPosition;
 import com.dynamsoft.dce.EnumCameraState;
 import com.dynamsoft.dce.EnumCoordinateBase;
 import com.dynamsoft.dce.EnumEnhancerFeatures;
@@ -59,10 +59,6 @@ import java.util.List;
 
 public class BarcodeScannerActivity extends AppCompatActivity implements ViewTreeObserver.OnGlobalLayoutListener {
     public final static String EXTRA_SCANNER_CONFIG = "scanner_config";
-    public final static String EXTRA_STATUS_CODE = "extra_status_code";
-    public final static String EXTRA_ERROR_CODE = "extra_error_code";
-    public final static String EXTRA_ERROR_STRING = "extra_error_string";
-    public final static String EXTRA_ITEM_LIST = "extra_item_list";
     private static final String TAG = "BarcodeScannerActivity";
 
     private static final String KEY_CONFIG = "CONFIG";
@@ -76,6 +72,13 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
     private int cumulativeFrames = 0;
 
     private CaptureVisionRouterException exceptionWhenConfigCvr;
+
+    private final OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            resultCanceled();
+        }
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -116,10 +119,8 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
 
         ImageView closeButton = findViewById(R.id.iv_back);
         closeButton.setVisibility(configuration.isCloseButtonVisible() ? View.VISIBLE : View.GONE);
-        closeButton.setOnClickListener(v -> {
-            resultOK(BarcodeScanResult.EnumResultStatus.RS_CANCELED, null);
-            finish();
-        });
+        closeButton.setOnClickListener(v -> resultCanceled());
+        getOnBackPressedDispatcher().addCallback(this, onBackPressedCallback);
 
         initCamera();
         initCVR();
@@ -132,14 +133,15 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
     }
 
     @Override
-    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
         outState.putSerializable(KEY_CONFIG, configuration);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        onBackPressedCallback.remove();
         mCamera.setZoomFactorChangeListener(null);
         mCameraView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
     }
@@ -164,6 +166,7 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
             Log.e(TAG, "initAutoZoom: enableEnhancedFeatures failed.", e);
         }
 
+        mCamera.setResolution(configuration.getResolution());
         mCamera.setZoomFactor(configuration.getZoomFactor());
         mCamera.setZoomFactorChangeListener(factor -> configuration.setZoomFactor(factor));
 
@@ -229,7 +232,7 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
         super.onResume();
         if (exceptionWhenConfigCvr != null) {
             resultError(exceptionWhenConfigCvr.getErrorCode(), exceptionWhenConfigCvr.getMessage());
-            finish();
+            return;
         }
         mCamera.open();
         // Start capturing. If success, you will receive results in the CapturedResultReceiver.
@@ -242,7 +245,6 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
             public void onFailure(int errorCode, String errorString) {
                 runOnUiThread(() -> {
                     resultError(errorCode, errorString);
-                    finish();
                 });
             }
         });
@@ -253,12 +255,6 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
         mCamera.close();
         mRouter.stopCapturing();
         super.onPause();
-    }
-
-    @Override
-    public void onBackPressed() {
-        resultOK(BarcodeScanResult.EnumResultStatus.RS_CANCELED, null);
-        super.onBackPressed();
     }
 
     /// ViewTreeObserver.OnGlobalLayoutListener
@@ -282,7 +278,6 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
             }
         } catch (CameraEnhancerException e) {
             resultError(e.getErrorCode(), "Set scan region error: " + e.getMessage());
-            finish();
         }
     }
 
@@ -301,16 +296,14 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
                 mCameraView.setCameraToggleButtonVisible(false);
             });
         } else if (result.getItems().length == 1) {
-            resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
-            finish();
+            resultOK(result.getItems());
         }
     }
 
     private void resultMultiple(DecodedBarcodesResult result) {
         if (result.getItems().length >= configuration.getExpectedBarcodesCount()) {
             makeFeedback(configuration);
-            resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
-            finish();
+            resultOK(result.getItems());
             return;
         }
         if (!sortResult(cachedResult, result)) {
@@ -320,8 +313,7 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
             cumulativeFrames++;
             if (cumulativeFrames >= configuration.getMaxConsecutiveStableFramesToExit()) {
                 makeFeedback(configuration);
-                resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, result.getItems());
-                finish();
+                resultOK(result.getItems());
             }
         }
     }
@@ -350,49 +342,41 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
         cameraView.setDrawingItemClickListener(clickedItem -> {
             String index = clickedItem.getNote("index").getContent();
             BarcodeResultItem clickedBarcodeItem = mapResultItem.get(index);
-            resultOK(BarcodeScanResult.EnumResultStatus.RS_FINISHED, new BarcodeResultItem[]{clickedBarcodeItem});
-            finish();
+            resultOK(new BarcodeResultItem[]{clickedBarcodeItem});
         });
     }
 
-    private void resultOK(int statusCode, BarcodeResultItem[] items) {
+    private void resultOK(@NonNull BarcodeResultItem[] items) {
         Intent intent = new Intent();
-        intent.putExtra(EXTRA_STATUS_CODE, statusCode);
-        if (items != null && items.length > 0) {
-            HashMap<Integer, HashMap<String, Object>> itemList = new HashMap<>();
-            for (int i = 0; i < items.length; i++) {
-                BarcodeResultItem item = items[i];
-                HashMap<String, Object> map = new HashMap<>();
-                map.put("text", item.getText());
-                map.put("type", item.getFormat());
-                map.put("typeString", item.getFormatString());
-                map.put("bytes", item.getBytes());
-                List<Integer> points = new ArrayList<>();
-                for (Point p : item.getLocation().points) {
-                    points.add(p.x);
-                    points.add(p.y);
-                }
-                map.put("location", points);
-                map.put("confidence", item.getConfidence());
-                map.put("angle", item.getAngle());
-                map.put("mirrored", item.isMirrored());
-                map.put("moduleSize", item.getModuleSize());
-                map.put("dpm", item.isDPM());
-                map.put("taskName", item.getTaskName() == null ? "" : item.getTaskName());
-                map.put("targetROIDefName", item.getTargetROIDefName() == null ? "" : item.getTargetROIDefName());
-                itemList.put(i, map);
-            }
-            intent.putExtra(EXTRA_ITEM_LIST, itemList);
+        BarcodeScanResult barcodeScanResult = new BarcodeScanResult();
+        barcodeScanResult.resultStatus = BarcodeScanResult.EnumResultStatus.RS_FINISHED;
+        barcodeScanResult.barcodeResults = new BarcodeResultItemProxy[items.length];
+        for (int i = 0; i < items.length; i++) {
+            barcodeScanResult.barcodeResults[i] = new BarcodeResultItemProxy(items[i]);
         }
+        intent.putExtra(BarcodeScanResult.EXTRA, barcodeScanResult);
         setResult(RESULT_OK, intent);
+        finish();
     }
 
     private void resultError(int errorCode, String errorString) {
         Intent intent = new Intent();
-        intent.putExtra(EXTRA_STATUS_CODE, BarcodeScanResult.EnumResultStatus.RS_EXCEPTION);
-        intent.putExtra(EXTRA_ERROR_CODE, errorCode);
-        intent.putExtra(EXTRA_ERROR_STRING, errorString);
+        BarcodeScanResult barcodeScanResult = new BarcodeScanResult();
+        barcodeScanResult.resultStatus = BarcodeScanResult.EnumResultStatus.RS_EXCEPTION;
+        barcodeScanResult.errorCode = errorCode;
+        barcodeScanResult.errorString = errorString;
+        intent.putExtra(BarcodeScanResult.EXTRA, barcodeScanResult);
         setResult(RESULT_OK, intent);
+        finish();
+    }
+
+    private void resultCanceled() {
+        Intent intent = new Intent();
+        BarcodeScanResult barcodeScanResult = new BarcodeScanResult();
+        barcodeScanResult.resultStatus = BarcodeScanResult.EnumResultStatus.RS_CANCELED;
+        intent.putExtra(BarcodeScanResult.EXTRA, barcodeScanResult);
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
     private static boolean sortResult(DecodedBarcodesResult cachedResult, DecodedBarcodesResult currentResult) {
@@ -421,7 +405,7 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
             for (int i = 0; i < cachedItems.length; i++) {
                 BarcodeResultItem cachedItem = cachedItems[i];
                 BarcodeResultItem currentItem = currentItems[i];
-                if (!cachedItem.getText().equals(currentItem.getText()) || cachedItem.getType() != currentItem.getType()) {
+                if (!cachedItem.getText().equals(currentItem.getText()) || cachedItem.getFormat() != currentItem.getFormat()) {
                     return false;
                 }
                 int cachedX = 0;
@@ -465,7 +449,13 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
 
         @Override
         public BarcodeScanResult parseResult(int i, @Nullable Intent intent) {
-            return new BarcodeScanResult(i, intent);
+            if (intent == null) {
+                BarcodeScanResult scanResult = new BarcodeScanResult();
+                scanResult.resultStatus = BarcodeScanResult.EnumResultStatus.RS_CANCELED;
+                return scanResult;
+            } else {
+                return (BarcodeScanResult) intent.getSerializableExtra(BarcodeScanResult.EXTRA);
+            }
         }
     }
 }

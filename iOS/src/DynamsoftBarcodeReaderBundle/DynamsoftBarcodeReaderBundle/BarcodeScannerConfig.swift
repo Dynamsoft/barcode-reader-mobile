@@ -26,6 +26,7 @@ public class BarcodeScannerConfig: NSObject {
     public var isCameraToggleButtonVisible: Bool = false
     public var zoomFactor: CGFloat?
     public var isVibrateEnabled: Bool = false
+    public var resolution: Resolution?
 }
 
 @objc(DSScanningMode)

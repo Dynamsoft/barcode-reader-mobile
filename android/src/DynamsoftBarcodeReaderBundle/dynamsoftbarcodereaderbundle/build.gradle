@@ -3,7 +3,7 @@ plugins {
 }
 
 ext {
-    releaseVersion = "11.2.5000"
+    releaseVersion = "11.4.1000"
     productName = "BarcodeReaderBundle"
     publishVersion = releaseVersion
 }
@@ -16,17 +16,14 @@ if (localPublishFileExists) {
 
 android {
     namespace 'com.dynamsoft.dbrbundle'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         minSdk 21
-        targetSdk 34
+        targetSdk 36
         versionCode 1
         versionName "${project.ext.releaseVersion}"
         archivesBaseName = "${project.ext.productName}-${project.ext.releaseVersion}"
-
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -39,15 +36,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-//    publishing {
-//        singleVariant("release") {
-////            withSourcesJar()
-//        }
-//    }
+    publishing {
+        singleVariant("release") {
+        }
+    }
 }
 
 dependencies {
-    api "com.dynamsoft:capturevisionbundle:3.2.5000"
+    api "com.dynamsoft:capturevisionbundle:3.4.1000"
 
     api 'androidx.appcompat:appcompat:1.6.1'
 }

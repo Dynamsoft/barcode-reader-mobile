@@ -138,6 +138,9 @@ extension BarcodeScannerViewController {
         if let zoomFactor = config.zoomFactor {
             dce.setZoomFactor(zoomFactor)
         }
+        if let resolution = config.resolution {
+            dce.setResolution(resolution)
+        }
     }
     
     private func setupUI() {

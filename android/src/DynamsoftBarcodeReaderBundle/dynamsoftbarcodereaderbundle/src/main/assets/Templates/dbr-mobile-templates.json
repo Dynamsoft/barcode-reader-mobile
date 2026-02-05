@@ -1,6 +1,5 @@
 {
-  "GlobalParameter":
-  {
+  "GlobalParameter": {
     "IntraOpNumThreads": 2
   },
   "CaptureVisionTemplates": [
@@ -45,11 +44,11 @@
       "MaxParallelTasks": 0
     },
     {
+      "Name": "ReadMultipleBarcodes",
       "ImageROIProcessingNameArray": [
         "roi_read_multiple_barcodes"
       ],
       "MaxParallelTasks": 0,
-      "Name": "ReadMultipleBarcodes",
       "Timeout": 650
     },
     {
@@ -175,6 +174,14 @@
     },
     {
       "BarcodeFormatIds": [
+        "BF_CODE_128"
+      ],
+      "BarcodeTextRegExPattern": "(I{0,1})([0-9A-HJ-NPR-Z]{9}[1-9A-HJ-NPR-TV-Y][0-9A-HJ-NPR-Z]{2}[0-9]{5})",
+      "MirrorMode": "MM_NORMAL",
+      "Name": "VIN-CODE-128"
+    },
+    {
+      "BarcodeFormatIds": [
         "BF_DATAMATRIX"
       ],
       "BarcodeTextRegExPattern": "[0-9A-HJ-NPR-Z]{9}[1-9A-HJ-NPR-TV-Y][0-9A-HJ-NPR-Z]{2}[0-9]{5}",
@@ -192,7 +199,6 @@
       "Name": "task-read-barcodes",
       "ExpectedBarcodesCount": 0,
       "MaxThreadsInOneTask": 1,
-      "BaseBarcodeReaderTaskSettingName": "task-read-single-barcode",
       "BarcodeFormatSpecificationNameArray": [
         "bfs1",
         "bfs2"
@@ -206,10 +212,18 @@
               "Stage": "SST_LOCALIZE_CANDIDATE_BARCODES",
               "LocalizationModes": [
                 {
-                  "Mode": "LM_CONNECTED_BLOCKS"
+                  "Mode": "LM_CONNECTED_BLOCKS",
+                  "ModelNameArray": [
+                    "OneDLocalization",
+                    "DataMatrixQRCodeLocalization"
+                  ]
                 },
                 {
-                  "Mode": "LM_LINES"
+                  "Mode": "LM_LINES",
+                  "ModelNameArray": [
+                    "OneDLocalization",
+                    "DataMatrixQRCodeLocalization"
+                  ]
                 }
               ]
             }
@@ -217,7 +231,28 @@
         },
         {
           "Section": "ST_BARCODE_DECODING",
-          "ImageParameterName": "ip-read-barcodes"
+          "ImageParameterName": "ip-read-barcodes",
+          "StageArray": [
+            {
+              "Stage": "SST_DECODE_BARCODES",
+              "DeblurModes": [
+                {
+                  "Mode": "DM_DIRECT_BINARIZATION"
+                },
+                {
+                  "Mode": "DM_NEURAL_NETWORK",
+                  "ModelNameArray": [
+                    "EAN13Decoder",
+                    "Code128Decoder",
+                    "Code39ITFDecoder"
+                  ]
+                },
+                {
+                  "Mode": "DM_DEEP_ANALYSIS"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -258,7 +293,12 @@
                   "Mode": "DM_DIRECT_BINARIZATION"
                 },
                 {
-                  "Mode": "DM_NEURAL_NETWORK"
+                  "Mode": "DM_NEURAL_NETWORK",
+                  "ModelNameArray": [
+                    "EAN13Decoder",
+                    "Code128Decoder",
+                    "Code39ITFDecoder"
+                  ]
                 },
                 {
                   "Mode": "DM_DEEP_ANALYSIS"
@@ -272,10 +312,10 @@
     {
       "Name": "task-read-barcodes-read-rate",
       "ExpectedBarcodesCount": 999,
-      "MaxThreadsInOneTask": 1,
       "BarcodeFormatIds": [
         "BF_DEFAULT"
       ],
+      "MaxThreadsInOneTask": 1,
       "BarcodeFormatSpecificationNameArray": [
         "bfs1-read-rate-first",
         "bfs2-read-rate-first"
@@ -318,7 +358,12 @@
                   "Mode": "DM_DIRECT_BINARIZATION"
                 },
                 {
-                  "Mode": "DM_NEURAL_NETWORK"
+                  "Mode": "DM_NEURAL_NETWORK",
+                  "ModelNameArray": [
+                    "EAN13Decoder",
+                    "Code128Decoder",
+                    "Code39ITFDecoder"
+                  ]
                 },
                 {
                   "Mode": "DM_SMOOTHING"
@@ -350,10 +395,18 @@
               "LocalizationModes": [
                 {
                   "Mode": "LM_SCAN_DIRECTLY",
-                  "ScanDirection": 2
+                  "ScanDirection": 2,
+                  "ModelNameArray": [
+                    "OneDLocalization",
+                    "DataMatrixQRCodeLocalization"
+                  ]
                 },
                 {
-                  "Mode": "LM_CONNECTED_BLOCKS"
+                  "Mode": "LM_CONNECTED_BLOCKS",
+                  "ModelNameArray": [
+                    "OneDLocalization",
+                    "DataMatrixQRCodeLocalization"
+                  ]
                 }
               ]
             }
@@ -370,10 +423,131 @@
                   "Mode": "DM_DIRECT_BINARIZATION"
                 },
                 {
-                  "Mode": "DM_NEURAL_NETWORK"
+                  "Mode": "DM_NEURAL_NETWORK",
+                  "ModelNameArray": [
+                    "EAN13Decoder",
+                    "Code128Decoder",
+                    "Code39ITFDecoder"
+                  ]
                 },
                 {
                   "Mode": "DM_DEEP_ANALYSIS"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "task-pdf-417",
+      "BarcodeFormatIds": [
+        "BF_PDF417"
+      ],
+      "ExpectedBarcodesCount": 1,
+      "MaxThreadsInOneTask": 1,
+      "SectionArray": [
+        {
+          "ImageParameterName": "ip-decode-pdf417",
+          "Section": "ST_BARCODE_LOCALIZATION",
+          "StageArray": [
+            {
+              "Stage": "SST_LOCALIZE_CANDIDATE_BARCODES",
+              "LocalizationModes": [
+                {
+                  "Mode": "LM_NEURAL_NETWORK",
+                  "ModelNameArray": [
+                    "PDF417Localization"
+                  ]
+                },
+                {
+                  "Mode": "LM_CONNECTED_BLOCKS"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ImageParameterName": "ip-decode-pdf417",
+          "Section": "ST_BARCODE_DECODING",
+          "StageArray": [
+            {
+              "Stage": "SST_DECODE_BARCODES",
+              "DeblurModes": [
+                {
+                  "Mode": "DM_BASED_ON_LOC_BIN"
+                },
+                {
+                  "Mode": "DM_DIRECT_BINARIZATION"
+                },
+                {
+                  "Mode": "DM_DEEP_ANALYSIS"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "task-vin-barcode",
+      "MaxThreadsInOneTask": 1,
+      "BarcodeFormatIds": [
+        "BF_CODE_128",
+        "BF_CODE_39_EXTENDED",
+        "BF_QR_CODE",
+        "BF_DATAMATRIX"
+      ],
+      "BarcodeFormatSpecificationNameArray": [
+        "VIN-CODE-39-EXTENDED",
+        "VIN-CODE-128",
+        "VIN-QR-CODE",
+        "VIN-DATAMATRIX"
+      ],
+      "ExpectedBarcodesCount": 1,
+      "SectionArray": [
+        {
+          "ImageParameterName": "ip-decode-vin",
+          "Section": "ST_BARCODE_LOCALIZATION",
+          "StageArray": [
+            {
+              "Stage": "SST_LOCALIZE_CANDIDATE_BARCODES",
+              "LocalizationModes": [
+                {
+                  "Mode": "LM_CONNECTED_BLOCKS"
+                },
+                {
+                  "Mode": "LM_SCAN_DIRECTLY"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "ImageParameterName": "ip-decode-vin",
+          "Section": "ST_BARCODE_DECODING",
+          "StageArray": [
+            {
+              "Stage": "SST_DECODE_BARCODES",
+              "DeblurModes": null
+            },
+            {
+              "Stage": "SST_RESIST_DEFORMATION",
+              "DeformationResistingModes": [
+                {
+                  "BinarizationMode": {
+                    "BinarizationThreshold": -1,
+                    "EnableFillBinaryVacancy": 0,
+                    "Mode": "BM_LOCAL_BLOCK",
+                    "MorphOperation": "Close",
+                    "MorphShape": "Rectangle",
+                    "ThresholdCompensation": 10
+                  },
+                  "GrayscaleEnhancementMode": {
+                    "Mode": "GEM_GENERAL"
+                  },
+                  "Level": 5,
+                  "Mode": "DRM_SKIP"
                 }
               ]
             }
@@ -432,117 +606,6 @@
           "Mode": "TROM_CONFIDENCE"
         }
       ]
-    },
-    {
-      "Name": "task-pdf-417",
-      "BarcodeFormatIds": [
-        "BF_PDF417"
-      ],
-      "ExpectedBarcodesCount": 1,
-      "MaxThreadsInOneTask": 1,
-      "SectionArray": [
-        {
-          "ImageParameterName": "ip-decode-pdf417",
-          "Section": "ST_BARCODE_LOCALIZATION",
-          "StageArray": [
-            {
-              "Stage": "SST_LOCALIZE_CANDIDATE_BARCODES",
-              "LocalizationModes": [
-                {
-                  "Mode": "LM_CONNECTED_BLOCKS"
-                },
-                {
-                  "Mode": "LM_LINES"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ImageParameterName": "ip-decode-pdf417",
-          "Section": "ST_BARCODE_DECODING",
-          "StageArray": [
-            {
-              "Stage": "SST_DECODE_BARCODES",
-              "DeblurModes": [
-                {
-                  "Mode": "DM_BASED_ON_LOC_BIN"
-                },
-                {
-                  "Mode": "DM_DIRECT_BINARIZATION"
-                },
-                {
-                  "Mode": "DM_DEEP_ANALYSIS"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Name": "task-vin-barcode",
-      "MaxThreadsInOneTask": 1,
-      "BarcodeFormatIds": [
-        "BF_CODE_39_EXTENDED",
-        "BF_QR_CODE",
-        "BF_DATAMATRIX"
-      ],
-      "BarcodeFormatSpecificationNameArray": [
-        "VIN-CODE-39-EXTENDED",
-        "VIN-QR-CODE",
-        "VIN-DATAMATRIX"
-      ],
-      "ExpectedBarcodesCount": 1,
-      "SectionArray": [
-        {
-          "ImageParameterName": "ip-decode-vin",
-          "Section": "ST_BARCODE_LOCALIZATION",
-          "StageArray": [
-            {
-              "Stage": "SST_LOCALIZE_CANDIDATE_BARCODES",
-              "LocalizationModes": [
-                {
-                  "Mode": "LM_CONNECTED_BLOCKS"
-                },
-                {
-                  "Mode": "LM_SCAN_DIRECTLY"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "ImageParameterName": "ip-decode-vin",
-          "Section": "ST_BARCODE_DECODING",
-          "StageArray": [
-            {
-              "Stage": "SST_DECODE_BARCODES",
-              "DeblurModes": null
-            },
-            {
-              "Stage": "SST_RESIST_DEFORMATION",
-              "DeformationResistingModes": [
-                {
-                  "BinarizationMode": {
-                    "BinarizationThreshold": -1,
-                    "EnableFillBinaryVacancy": 0,
-                    "Mode": "BM_LOCAL_BLOCK",
-                    "MorphOperation": "Close",
-                    "MorphShape": "Rectangle",
-                    "ThresholdCompensation": 10
-                  },
-                  "GrayscaleEnhancementMode": {
-                    "Mode": "GEM_GENERAL"
-                  },
-                  "Level": 5,
-                  "Mode": "DRM_SKIP"
-                }
-              ]
-            }
-          ]
-        }
-      ]
     }
   ],
   "ImageParameterOptions": [
@@ -551,16 +614,11 @@
       "BaseImageParameterName": "ip-read-single-barcode"
     },
     {
+      "Name": "ip-decode-pdf417"
+    },
+    {
       "Name": "ip-read-barcodes-speed-first",
       "ApplicableStages": [
-        {
-          "Stage": "SST_DETECT_TEXT_ZONES",
-          "TextDetectionMode": {
-            "Mode": "TTDM_LINE",
-            "Direction": "UNKNOWN",
-            "Sensitivity": 3
-          }
-        },
         {
           "Stage": "SST_REMOVE_TEXT_ZONES_FROM_BINARY",
           "IfEraseTextZone": 1
@@ -570,8 +628,6 @@
           "BinarizationModes": [
             {
               "Mode": "BM_LOCAL_BLOCK",
-              "BlockSizeX": 0,
-              "BlockSizeY": 0,
               "EnableFillBinaryVacancy": 0
             }
           ]
@@ -582,14 +638,6 @@
       "Name": "ip-read-barcodes-read-rate",
       "ApplicableStages": [
         {
-          "Stage": "SST_DETECT_TEXT_ZONES",
-          "TextDetectionMode": {
-            "Mode": "TTDM_LINE",
-            "Direction": "UNKNOWN",
-            "Sensitivity": 3
-          }
-        },
-        {
           "Stage": "SST_REMOVE_TEXT_ZONES_FROM_BINARY",
           "IfEraseTextZone": 1
         },
@@ -598,8 +646,6 @@
           "BinarizationModes": [
             {
               "Mode": "BM_LOCAL_BLOCK",
-              "BlockSizeX": 0,
-              "BlockSizeY": 0,
               "EnableFillBinaryVacancy": 0
             }
           ]
@@ -629,14 +675,6 @@
       "Name": "ip-read-single-barcode",
       "ApplicableStages": [
         {
-          "Stage": "SST_DETECT_TEXT_ZONES",
-          "TextDetectionMode": {
-            "Mode": "TTDM_LINE",
-            "Direction": "UNKNOWN",
-            "Sensitivity": 3
-          }
-        },
-        {
           "Stage": "SST_REMOVE_TEXT_ZONES_FROM_BINARY",
           "IfEraseTextZone": 1
         },
@@ -654,6 +692,7 @@
       ]
     },
     {
+      "Name": "ip_read_multiple_barcodes",
       "ApplicableStages": [
         {
           "Stage": "SST_INPUT_COLOR_IMAGE"
@@ -665,11 +704,7 @@
           },
           "Stage": "SST_SCALE_IMAGE"
         }
-      ],
-      "Name": "ip_read_multiple_barcodes"
-    },
-    {
-      "Name": "ip-decode-pdf417"
+      ]
     },
     {
       "Name": "ip-decode-vin",

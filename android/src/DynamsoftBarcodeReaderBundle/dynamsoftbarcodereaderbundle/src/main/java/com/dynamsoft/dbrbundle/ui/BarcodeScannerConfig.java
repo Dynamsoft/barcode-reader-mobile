@@ -3,6 +3,7 @@ package com.dynamsoft.dbrbundle.ui;
 import com.dynamsoft.core.basic_structures.DSRect;
 import com.dynamsoft.dbr.EnumBarcodeFormat;
 import com.dynamsoft.dce.EnumCameraPosition;
+import com.dynamsoft.dce.EnumResolution;
 
 import java.io.Serializable;
 
@@ -39,6 +40,9 @@ public final class BarcodeScannerConfig implements Serializable {
 	private int expectedBarcodesCount = 999;
 
 	private float zoomFactor = 1f;
+
+    @EnumResolution
+    private int resolution = EnumResolution.RESOLUTION_1080P;
 
 	public boolean isTorchButtonVisible() {
 		return isTorchButtonVisible;
@@ -167,4 +171,13 @@ public final class BarcodeScannerConfig implements Serializable {
 	public void setZoomFactor(float zoomFactor) {
 		this.zoomFactor = zoomFactor;
 	}
+
+    public void setResolution(@EnumResolution int resolution) {
+        this.resolution = resolution;
+    }
+
+    @EnumResolution
+    public int getResolution() {
+        return resolution;
+    }
 }
