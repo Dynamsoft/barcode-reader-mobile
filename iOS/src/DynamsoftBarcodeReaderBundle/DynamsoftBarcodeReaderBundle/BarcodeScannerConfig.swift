@@ -8,10 +8,16 @@
 import Foundation
 import DynamsoftCaptureVisionBundle
 
+@objc(DSScanningMode)
+public enum ScanningMode:Int {
+    case single
+    case multiple
+}
+
 @objcMembers
 @objc(DSBarcodeScannerConfig)
 public class BarcodeScannerConfig: NSObject {
-    public var license: String!
+    public var license: String = ""
     public var templateFile: String?
     public var isTorchButtonVisible: Bool = true
     public var scanRegion: Rect?
@@ -24,13 +30,17 @@ public class BarcodeScannerConfig: NSObject {
     public var maxConsecutiveStableFramesToExit: Int = 10
     public var expectedBarcodesCount: Int = 999
     public var isCameraToggleButtonVisible: Bool = false
-    public var zoomFactor: CGFloat?
+    internal static let undefinedZoom: CGFloat = -1.0
+    public var zoomFactor: CGFloat = undefinedZoom
     public var isVibrateEnabled: Bool = false
-    public var resolution: Resolution?
-}
-
-@objc(DSScanningMode)
-public enum ScanningMode:Int {
-    case single
-    case multiple
+    public var resolution: Resolution = .resolution1080P
+    
+    override public init() {
+        super.init()
+    }
+    
+    public init(license: String) {
+        self.license = license
+        super.init()
+    }
 }

@@ -135,11 +135,9 @@ extension BarcodeScannerViewController {
             filter.enableLatestOverlapping(.barcode, isEnabled: true)
         }
         cvr.addResultFilter(filter)
-        if let zoomFactor = config.zoomFactor {
-            dce.setZoomFactor(zoomFactor)
-        }
-        if let resolution = config.resolution {
-            dce.setResolution(resolution)
+        dce.setResolution(config.resolution)
+        if config.zoomFactor != BarcodeScannerConfig.undefinedZoom {
+            dce.setZoomFactor(config.zoomFactor)
         }
     }
     
@@ -316,9 +314,7 @@ extension BarcodeScannerViewController: CameraStateListener {
 extension BarcodeScannerViewController: LicenseVerificationListener {
     
     private func setupLicense() {
-        if let license = config.license {
-            LicenseManager.initLicense(license, verificationDelegate: self)
-        }
+        LicenseManager.initLicense(config.license, verificationDelegate: self)
     }
     
     public func onLicenseVerified(_ isSuccess: Bool, error: (any Error)?) {
