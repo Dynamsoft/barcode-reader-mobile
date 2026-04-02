@@ -8,7 +8,6 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -55,7 +54,6 @@ import com.dynamsoft.utility.MultiFrameResultCrossFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 public class BarcodeScannerActivity extends AppCompatActivity implements ViewTreeObserver.OnGlobalLayoutListener {
     public final static String EXTRA_SCANNER_CONFIG = "scanner_config";
@@ -340,8 +338,21 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
 
     private void addDrawingItemListener(CameraView cameraView) {
         cameraView.setDrawingItemClickListener(clickedItem -> {
-            String index = clickedItem.getNote("index").getContent();
+            if (clickedItem == null) {
+                return;
+            }
+            Note indexNote = clickedItem.getNote("index");
+            if (indexNote == null) {
+                return;
+            }
+            String index = indexNote.getContent();
+            if (index == null || index.isEmpty()) {
+                return;
+            }
             BarcodeResultItem clickedBarcodeItem = mapResultItem.get(index);
+            if (clickedBarcodeItem == null) {
+                return;
+            }
             resultOK(new BarcodeResultItem[]{clickedBarcodeItem});
         });
     }
