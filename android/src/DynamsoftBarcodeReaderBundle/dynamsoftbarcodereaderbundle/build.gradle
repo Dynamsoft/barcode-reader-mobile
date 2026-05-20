@@ -3,7 +3,7 @@ plugins {
 }
 
 ext {
-    releaseVersion = "11.4.1200"
+    releaseVersion = "11.4.1300"
     productName = "BarcodeReaderBundle"
     publishVersion = releaseVersion
 }
@@ -43,7 +43,7 @@ android {
 }
 
 dependencies {
-    api "com.dynamsoft:capturevisionbundle:3.4.1200"
+    api "com.dynamsoft:capturevisionbundle:3.4.1300"
 
     api 'androidx.appcompat:appcompat:1.6.1'
 }
