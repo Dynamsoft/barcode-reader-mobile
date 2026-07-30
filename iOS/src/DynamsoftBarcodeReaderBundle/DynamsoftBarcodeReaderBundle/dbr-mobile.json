@@ -9,7 +9,7 @@
                 "roi-read-barcodes"
             ],
             "Timeout": 500,
-            "MaxParallelTasks": 0
+            "MaxParallelTasks": 2
         },
         {
             "Name": "ReadBarcodes_Default",
@@ -17,7 +17,7 @@
                 "roi-read-barcodes"
             ],
             "Timeout": 500,
-            "MaxParallelTasks": 0
+            "MaxParallelTasks": 2
         },
         {
             "Name": "ReadBarcodes_SpeedFirst",
@@ -25,7 +25,7 @@
                 "roi-read-barcodes-speed-first"
             ],
             "Timeout": 500,
-            "MaxParallelTasks": 0
+            "MaxParallelTasks": 2
         },
         {
             "Name": "ReadBarcodes_ReadRateFirst",
@@ -33,7 +33,7 @@
                 "roi-read-barcodes-read-rate"
             ],
             "Timeout": 5000,
-            "MaxParallelTasks": 0
+            "MaxParallelTasks": 2
         },
         {
             "Name": "ReadSingleBarcode",
@@ -41,14 +41,14 @@
                 "roi-read-single-barcode"
             ],
             "Timeout": 200,
-            "MaxParallelTasks": 0
+            "MaxParallelTasks": 2
         },
         {
             "Name": "ReadMultipleBarcodes",
             "ImageROIProcessingNameArray": [
                 "roi_read_multiple_barcodes"
             ],
-            "MaxParallelTasks": 0,
+            "MaxParallelTasks": 2,
             "Timeout": 650
         },
         {
@@ -60,14 +60,14 @@
                 "sp-pdf-417"
             ],
             "Timeout": 400,
-            "MaxParallelTasks": 0
+            "MaxParallelTasks": 2
         },
         {
             "Name": "ReadVINBarcode",
             "ImageROIProcessingNameArray": [
                 "roi-vin-barcode"
             ],
-            "MaxParallelTasks": 0,
+            "MaxParallelTasks": 2,
             "SemanticProcessingNameArray": [
                 "sp-vin-barcode"
             ],
@@ -212,12 +212,10 @@
                             "Stage": "SST_LOCALIZE_CANDIDATE_BARCODES",
                             "LocalizationModes": [
                                 {
-                                    "Mode": "LM_CONNECTED_BLOCKS",
-                                    "ModelNameArray": ["OneDLocalization", "DataMatrixQRCodeLocalization"]
+                                    "Mode": "LM_CONNECTED_BLOCKS"
                                 },
                                 {
-                                    "Mode": "LM_LINES",
-                                    "ModelNameArray": ["OneDLocalization", "DataMatrixQRCodeLocalization"]
+                                    "Mode": "LM_LINES"
                                 }
                             ]
                         }
@@ -377,12 +375,10 @@
                             "LocalizationModes": [
                                 {
                                     "Mode": "LM_SCAN_DIRECTLY",
-                                    "ScanDirection": 2,
-                                    "ModelNameArray": ["OneDLocalization", "DataMatrixQRCodeLocalization"]
+                                    "ScanDirection": 2
                                 },
                                 {
-                                    "Mode": "LM_CONNECTED_BLOCKS",
-                                    "ModelNameArray": ["OneDLocalization", "DataMatrixQRCodeLocalization"]
+                                    "Mode": "LM_CONNECTED_BLOCKS"
                                 }
                             ]
                         }
