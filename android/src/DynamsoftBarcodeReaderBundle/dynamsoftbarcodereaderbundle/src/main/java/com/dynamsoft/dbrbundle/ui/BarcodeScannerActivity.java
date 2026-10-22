@@ -263,6 +263,9 @@ public class BarcodeScannerActivity extends AppCompatActivity implements ViewTre
                 mCamera.setScanRegion(configuration.getScanRegion());
             } else {
                 DSRect visibleRegion = mCameraView.getVisibleRegionOfVideo();
+                if(visibleRegion == null) {
+                    return;
+                }
                 int orientation = getResources().getConfiguration().orientation;
                 if (orientation == ORIENTATION_PORTRAIT && (visibleRegion.right - visibleRegion.left) > 0.02f) {
                     visibleRegion.right -= 0.01f;
